@@ -1,0 +1,22 @@
+{
+  "name": "training-grounds",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Training Grounds - MMA Gym Retention App",
+  "workspaces": [
+    "packages/shared",
+    "packages/backend",
+    "packages/frontend"
+  ],
+  "scripts": {
+    "dev:backend": "cd packages/backend && npm run start:dev",
+    "dev:frontend": "cd packages/frontend && npx expo start",
+    "build": "npm run build --workspaces",
+    "test": "npm test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "typecheck": "npm run typecheck --workspaces"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

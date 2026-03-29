@@ -1,0 +1,129 @@
+graph TB
+    subgraph Client["Client Layer"]
+        iOS["iOS App<br/>React Native + Expo"]
+        Android["Android App<br/>React Native + Expo"]
+        Web["Web Dashboard<br/>Coach Portal"]
+    end
+
+    subgraph Gateway["API Gateway"]
+        LB["Load Balancer<br/>API Gateway + Rate Limiting"]
+    end
+
+    subgraph Backend["Backend Services — NestJS"]
+        AuthSvc["Auth Service<br/>JWT / OAuth2 / Roles"]
+        GamifySvc["Gamification Engine<br/>XP / Streaks / Badges<br/>Leaderboards / Leagues"]
+        AttendSvc["Attendance Service<br/>QR Check-in / Scheduling<br/>Training Load Scoring"]
+        ReferralSvc["Referral Service<br/>Pipeline Tracking / Rewards<br/>Ambassador Program"]
+        CommunitySvc["Community Hub<br/>Channels / Messages / Threads<br/>Reactions / Media"]
+        ProfileSvc["Profile Service<br/>User Data / Stats<br/>Belt Progression"]
+        NotifySvc["Notification Service<br/>Push / Email / In-app<br/>Streak Reminders"]
+        VideoSvc["Video Library Service<br/>Upload / Transcode<br/>Coach Insights / Feedback"]
+        JournalSvc["Journal Service<br/>Prompted Reflections<br/>Coach Review / Privacy"]
+        ProgressSvc["Progress Tracking<br/>Skill Development / Goals<br/>Session Logs"]
+        CoachSvc["Coaches Corner<br/>Session Planner / Game Builder<br/>Class Templates"]
+        ContentSvc["Content Service<br/>Class Plans / Study Material<br/>Curriculum Management"]
+    end
+
+    subgraph RealTime["Real-time Layer"]
+        WebSocket["WebSocket Server<br/>Socket.io"]
+        MQ["Message Queue<br/>BullMQ"]
+        EventBus["Event Bus<br/>Badge/XP/Streak Triggers"]
+    end
+
+    subgraph Data["Data Layer"]
+        PostgreSQL["PostgreSQL<br/>Primary Database<br/>21+ Tables"]
+        Redis["Redis<br/>Cache / Sessions<br/>Leaderboards / Presence"]
+        S3["AWS S3<br/>Media Storage<br/>Photos / Videos / Docs"]
+        CDN["CloudFront CDN<br/>Media Delivery<br/>Video Streaming"]
+        Search["Elasticsearch<br/>Content / Video Search"]
+    end
+
+    subgraph External["External Integrations"]
+        FCM["Firebase Cloud<br/>Messaging"]
+        Stripe["Stripe<br/>Payments / Merch"]
+        GymAPI["Gym Management<br/>Mindbody / Zen Planner"]
+        Social["Social Sharing<br/>Instagram / WhatsApp"]
+        Transcode["Media Processing<br/>FFmpeg / AWS MediaConvert"]
+        Wearables["Wearable APIs<br/>Whoop / Apple Watch"]
+    end
+
+    %% Client to Gateway
+    iOS --> LB
+    Android --> LB
+    Web --> LB
+
+    %% Gateway to Backend Services
+    LB --> AuthSvc
+    LB --> GamifySvc
+    LB --> AttendSvc
+    LB --> ReferralSvc
+    LB --> CommunitySvc
+    LB --> ProfileSvc
+    LB --> NotifySvc
+    LB --> VideoSvc
+    LB --> JournalSvc
+    LB --> ProgressSvc
+    LB --> CoachSvc
+    LB --> ContentSvc
+
+    %% Backend to Real-time Layer
+    GamifySvc --> EventBus
+    AttendSvc --> MQ
+    CommunitySvc --> WebSocket
+    NotifySvc --> MQ
+    ReferralSvc --> MQ
+    VideoSvc --> MQ
+    JournalSvc --> EventBus
+    CoachSvc --> WebSocket
+
+    %% Backend to Data Layer
+    AuthSvc --> PostgreSQL
+    GamifySvc --> Redis
+    GamifySvc --> PostgreSQL
+    AttendSvc --> PostgreSQL
+    ReferralSvc --> PostgreSQL
+    CommunitySvc --> PostgreSQL
+    CommunitySvc --> S3
+    ProfileSvc --> PostgreSQL
+    ProfileSvc --> S3
+    NotifySvc --> PostgreSQL
+    VideoSvc --> PostgreSQL
+    VideoSvc --> S3
+    JournalSvc --> PostgreSQL
+    ProgressSvc --> PostgreSQL
+    CoachSvc --> PostgreSQL
+    ContentSvc --> PostgreSQL
+    ContentSvc --> S3
+    ContentSvc --> Search
+
+    %% Real-time to Data
+    WebSocket --> Redis
+    EventBus --> Redis
+    MQ --> Redis
+
+    %% Data Layer Connections
+    S3 --> CDN
+    S3 --> Transcode
+
+    %% Backend to External Services
+    NotifySvc --> FCM
+    ReferralSvc --> Stripe
+    AttendSvc --> GymAPI
+    CommunitySvc --> Social
+    VideoSvc --> Transcode
+    ProgressSvc --> Wearables
+
+    %% Styling
+    classDef clientLayer fill:#C9A87C,stroke:#8A7352,stroke-width:2px,color:#1E1E1E
+    classDef gateway fill:#1E1E1E,stroke:#C9A87C,stroke-width:2px,color:#C9A87C
+    classDef service fill:#2A2A2A,stroke:#C9A87C,stroke-width:1px,color:#F2F2F0
+    classDef realtime fill:#4A3728,stroke:#C9A87C,stroke-width:2px,color:#FAFAF8
+    classDef database fill:#3A3530,stroke:#C9A87C,stroke-width:2px,color:#FAFAF8
+    classDef external fill:#B0B5B8,stroke:#7A7A7A,stroke-width:1px,color:#1E1E1E
+
+    class iOS,Android,Web clientLayer
+    class LB gateway
+    class AuthSvc,GamifySvc,AttendSvc,ReferralSvc,CommunitySvc,ProfileSvc,NotifySvc,VideoSvc,JournalSvc,ProgressSvc,CoachSvc,ContentSvc service
+    class WebSocket,MQ,EventBus realtime
+    class PostgreSQL,Redis,S3,CDN,Search database
+    class FCM,Stripe,GymAPI,Social,Transcode,Wearables external
