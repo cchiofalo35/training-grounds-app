@@ -19,7 +19,7 @@ export class AttendanceRecordEntity {
   @Column({ type: 'uuid' })
   userId!: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'varchar', length: 255 })
   classId!: string;
 
   @CreateDateColumn({ type: 'timestamptz' })

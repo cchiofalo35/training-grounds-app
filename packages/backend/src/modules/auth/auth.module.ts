@@ -35,6 +35,12 @@ export class AuthModule implements OnModuleInit {
 
   onModuleInit() {
     if (admin.apps.length === 0) {
+      const emulatorHost = this.config.get<string>('FIREBASE_AUTH_EMULATOR_HOST');
+      if (emulatorHost) {
+        process.env.FIREBASE_AUTH_EMULATOR_HOST = emulatorHost;
+        console.log(`Firebase Auth Emulator enabled at ${emulatorHost}`);
+      }
+
       admin.initializeApp({
         projectId: this.config.get<string>(
           'FIREBASE_PROJECT_ID',
