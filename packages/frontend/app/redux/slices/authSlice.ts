@@ -22,7 +22,7 @@ export const login = createAsyncThunk(
   async (credentials: { email: string; password: string }, { rejectWithValue }) => {
     try {
       const response = await authService.login(credentials.email, credentials.password);
-      await SecureStore.setItemAsync('auth_token', response.token);
+      await SecureStore.setItemAsync('auth_token', response.accessToken);
       return response.user;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Login failed';
@@ -39,7 +39,7 @@ export const register = createAsyncThunk(
   ) => {
     try {
       const response = await authService.register(data);
-      await SecureStore.setItemAsync('auth_token', response.token);
+      await SecureStore.setItemAsync('auth_token', response.accessToken);
       return response.user;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Registration failed';

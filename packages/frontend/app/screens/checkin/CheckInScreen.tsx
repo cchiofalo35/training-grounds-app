@@ -14,7 +14,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
 import type { ClassSession, Discipline } from '@training-grounds/shared';
 import type { AppDispatch, RootState } from '../../redux/store';
-import { checkIn } from '../../redux/slices/attendanceSlice';
+import { checkIn, type CheckInData } from '../../redux/slices/attendanceSlice';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 
@@ -89,10 +89,14 @@ export const CheckInScreen: React.FC = () => {
     const classId = selectedClass?.id ?? scannedData;
     if (!classId) return;
 
+    const checkInData: CheckInData = {
+      classId,
+      className: selectedClass?.name ?? 'QR Check-in',
+      discipline: selectedClass?.discipline ?? 'mma',
+    };
+
     try {
-      await dispatch(
-        checkIn({ classId, qrCode: scannedData ?? undefined }),
-      ).unwrap();
+      await dispatch(checkIn(checkInData)).unwrap();
       Alert.alert(
         'Checked In!',
         `You're checked in${selectedClass ? ` to ${selectedClass.name}` : ''}. Keep training!`,

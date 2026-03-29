@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import type { AttendanceRecord } from '@training-grounds/shared';
+import type { AttendanceRecord, Discipline } from '@training-grounds/shared';
 import { attendanceService } from '../../services/attendanceService';
 
 interface AttendanceState {
@@ -11,6 +11,7 @@ interface AttendanceState {
     totalClasses: number;
     classesThisMonth: number;
     classesThisWeek: number;
+    classesByDiscipline: Record<string, number>;
   };
 }
 
@@ -23,14 +24,22 @@ const initialState: AttendanceState = {
     totalClasses: 0,
     classesThisMonth: 0,
     classesThisWeek: 0,
+    classesByDiscipline: {},
   },
 };
 
+export interface CheckInData {
+  classId: string;
+  className: string;
+  discipline: Discipline;
+  intensityRating?: 'light' | 'moderate' | 'high' | 'all-out';
+}
+
 export const checkIn = createAsyncThunk(
   'attendance/checkIn',
-  async (data: { classId: string; qrCode?: string }, { rejectWithValue }) => {
+  async (data: CheckInData, { rejectWithValue }) => {
     try {
-      const record = await attendanceService.checkIn(data.classId, data.qrCode);
+      const record = await attendanceService.checkIn(data);
       return record;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Check-in failed';
@@ -98,9 +107,14 @@ const attendanceSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      // Fetch stats
+      // Fetch stats — map backend field names to frontend
       .addCase(fetchStats.fulfilled, (state, action) => {
-        state.stats = action.payload;
+        state.stats = {
+          totalClasses: action.payload.totalClasses,
+          classesThisMonth: action.payload.thisMonth,
+          classesThisWeek: action.payload.thisWeek,
+          classesByDiscipline: action.payload.classesByDiscipline,
+        };
       });
   },
 });
