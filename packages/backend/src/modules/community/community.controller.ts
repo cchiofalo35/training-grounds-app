@@ -49,7 +49,7 @@ export class CommunityController {
     isPinned?: boolean;
     isReadOnly?: boolean;
   }) {
-    const channel = await this.communityService.createChannel(body);
+    const channel = await this.communityService.createChannel(body as any);
     return { success: true, data: channel };
   }
 
@@ -69,7 +69,7 @@ export class CommunityController {
       isReadOnly: boolean;
     }>,
   ) {
-    const channel = await this.communityService.updateChannel(id, body);
+    const channel = await this.communityService.updateChannel(id, body as any);
     return { success: true, data: channel };
   }
 

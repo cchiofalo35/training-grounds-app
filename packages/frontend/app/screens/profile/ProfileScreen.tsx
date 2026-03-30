@@ -6,14 +6,19 @@ import {
   SafeAreaView,
   ScrollView,
   Pressable,
+  Image,
+  Alert,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
 import type { UserBadge } from '@training-grounds/shared';
 import type { RootState, AppDispatch } from '../../redux/store';
 import { fetchStats } from '../../redux/slices/attendanceSlice';
 import { fetchStreak, fetchBadges } from '../../redux/slices/gamificationSlice';
+import { updateAvatar } from '../../redux/slices/authSlice';
 import { useAuth } from '../../hooks/useAuth';
 import { Card } from '../../components/common/Card';
 import { BeltDisplay } from '../../components/common/BeltDisplay';
@@ -34,6 +39,7 @@ const formatJoinDate = (dateStr: string): string => {
 };
 
 export const ProfileScreen: React.FC = () => {
+  const navigation = useNavigation();
   const dispatch = useDispatch<AppDispatch>();
   const { user, logout } = useAuth();
   const { stats } = useSelector((state: RootState) => state.attendance);
@@ -45,7 +51,33 @@ export const ProfileScreen: React.FC = () => {
     dispatch(fetchBadges());
   }, [dispatch]);
 
+  const handlePickPhoto = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permission Needed',
+        'Please allow photo library access to update your profile picture.',
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      // Dispatch the avatar update action
+      dispatch(updateAvatar(result.assets[0].uri));
+    }
+  };
+
   if (!user) return null;
+
+  const initial = user.name?.charAt(0).toUpperCase() ?? '?';
+  const hasPhoto = !!user.avatarUrl;
 
   const statCards: { label: string; value: string; icon: React.ComponentProps<typeof Ionicons>['name'] }[] = [
     {
@@ -71,15 +103,22 @@ export const ProfileScreen: React.FC = () => {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Profile Header */}
+        {/* Profile Header with Photo */}
         <View style={styles.profileHeader}>
-          <View style={styles.avatarLarge}>
-            <Text style={styles.avatarText}>
-              {user.name.charAt(0).toUpperCase()}
-            </Text>
-          </View>
+          <Pressable onPress={handlePickPhoto} style={styles.avatarContainer}>
+            {hasPhoto ? (
+              <Image source={{ uri: user.avatarUrl! }} style={styles.avatarImage} />
+            ) : (
+              <View style={styles.avatarLarge}>
+                <Text style={styles.avatarText}>{initial}</Text>
+              </View>
+            )}
+            <View style={styles.editBadge}>
+              <Ionicons name="camera" size={14} color={colors.offWhite} />
+            </View>
+          </Pressable>
           <Text style={styles.userName}>{user.name}</Text>
           <BeltDisplay
             belt={user.beltRank}
@@ -169,7 +208,7 @@ export const ProfileScreen: React.FC = () => {
           style={styles.logoutButton}
         />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -188,21 +227,44 @@ const styles = StyleSheet.create({
     paddingVertical: spacing['2xl'],
     gap: spacing.sm,
   },
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: spacing.sm,
+  },
   avatarLarge: {
-    width: 88,
-    height: 88,
-    borderRadius: borderRadius.full,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     backgroundColor: colors.darkGrey,
     borderWidth: 3,
     borderColor: colors.warmAccent,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+  },
+  avatarImage: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 3,
+    borderColor: colors.warmAccent,
   },
   avatarText: {
     fontFamily: 'BebasNeue',
     fontSize: fonts.size['3xl'],
     color: colors.offWhite,
+  },
+  editBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.warmAccent,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.charcoal,
   },
   userName: {
     fontFamily: 'BebasNeue',

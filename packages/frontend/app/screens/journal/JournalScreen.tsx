@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
 import type { JournalEntry, Discipline } from '@training-grounds/shared';
@@ -55,6 +56,7 @@ const formatDate = (dateStr: string): string => {
 };
 
 export const JournalScreen: React.FC = () => {
+  const navigation = useNavigation();
   const dispatch = useDispatch<AppDispatch>();
   const { entries, isLoading, isSaving } = useSelector(
     (state: RootState) => state.journal,
@@ -203,11 +205,7 @@ export const JournalScreen: React.FC = () => {
 
   // List view
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.listHeader}>
-        <Text style={styles.screenTitle}>TRAINING JOURNAL</Text>
-        <Text style={styles.subtitle}>Reflect. Improve. Repeat.</Text>
-      </View>
+    <View style={styles.container}>
 
       {/* New Entry Button */}
       <Pressable
@@ -281,7 +279,7 @@ export const JournalScreen: React.FC = () => {
           </Card>
         )}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -294,6 +292,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   // List view
+  listHeaderBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.base,
+    paddingTop: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderDark,
+  },
+  backBtn: {
+    padding: spacing.xs,
+  },
+  listHeaderTitles: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 2,
+  },
+  headerSpacer: {
+    width: 40,
+  },
   listHeader: {
     padding: spacing.base,
     paddingTop: spacing.lg,

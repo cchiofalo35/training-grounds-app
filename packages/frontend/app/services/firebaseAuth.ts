@@ -9,9 +9,9 @@ import * as Crypto from 'expo-crypto';
 const FIREBASE_PROJECT_ID = process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID ?? 'training-grounds-app';
 const FIREBASE_API_KEY = process.env.EXPO_PUBLIC_FIREBASE_API_KEY ?? 'fake-api-key';
 
-// In dev, point to the emulator. In production, use the real Firebase endpoint.
-const FIREBASE_EMULATOR_HOST = process.env.EXPO_PUBLIC_FIREBASE_EMULATOR_HOST ?? '127.0.0.1:9099';
-const FIREBASE_AUTH_URL = __DEV__
+// Only use emulator when explicitly configured via env var; otherwise always use real Firebase.
+const FIREBASE_EMULATOR_HOST = process.env.EXPO_PUBLIC_FIREBASE_EMULATOR_HOST;
+const FIREBASE_AUTH_URL = FIREBASE_EMULATOR_HOST
   ? `http://${FIREBASE_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1`
   : `https://identitytoolkit.googleapis.com/v1`;
 

@@ -10,7 +10,9 @@ import {
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { CompositeNavigationProp } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
 import type { AttendanceRecord, Discipline } from '@training-grounds/shared';
@@ -21,9 +23,14 @@ import { Card } from '../../components/common/Card';
 import { StreakBadge } from '../../components/common/StreakBadge';
 import { XpProgressBar } from '../../components/common/XpProgressBar';
 import { BeltDisplay } from '../../components/common/BeltDisplay';
+import { ProfileAvatar } from '../../components/common/ProfileAvatar';
 import type { MainTabParamList } from '../../navigation/MainTabs';
+import type { AppStackParamList } from '../../navigation/AppStack';
 
-type DashboardNavProp = BottomTabNavigationProp<MainTabParamList, 'Dashboard'>;
+type DashboardNavProp = CompositeNavigationProp<
+  BottomTabNavigationProp<MainTabParamList, 'Dashboard'>,
+  NativeStackNavigationProp<AppStackParamList>
+>;
 
 const DISCIPLINE_LABELS: Record<Discipline, string> = {
   'bjj-gi': 'BJJ Gi',
@@ -240,10 +247,11 @@ export const DashboardScreen: React.FC = () => {
           />
         }
       >
-        {/* Greeting */}
-        <View style={styles.greetingSection}>
-          <Text style={styles.greeting}>Welcome back,</Text>
-          <Text style={styles.greetingName}>{firstName}</Text>
+        {/* Greeting + Profile Avatar */}
+        <View style={styles.greetingRow}>
+          <View style={styles.greetingSection}>
+            <Text style={styles.greeting}>Welcome back,</Text>
+            <Text style={styles.greetingName}>{firstName}</Text>
           {user && (
             <BeltDisplay belt={user.beltRank} stripes={user.stripes} size="small" />
           )}
@@ -253,6 +261,8 @@ export const DashboardScreen: React.FC = () => {
               {league.name} League
             </Text>
           </View>
+          </View>
+          <ProfileAvatar size={42} />
         </View>
 
         {/* Streak & XP Row */}
@@ -294,6 +304,22 @@ export const DashboardScreen: React.FC = () => {
             <Text style={styles.checkInSubtext}>Scan QR or select class</Text>
           </View>
           <Ionicons name="arrow-forward" size={24} color={colors.charcoal} />
+        </Pressable>
+
+        {/* Add Journal Entry Button */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.journalButton,
+            { opacity: pressed ? 0.85 : 1 },
+          ]}
+          onPress={() => navigation.navigate('Journal')}
+        >
+          <Ionicons name="journal" size={24} color={colors.warmAccent} />
+          <View style={styles.checkInTextContainer}>
+            <Text style={styles.journalButtonTitle}>ADD JOURNAL ENTRY</Text>
+            <Text style={styles.journalButtonSubtext}>Reflect on your training</Text>
+          </View>
+          <Ionicons name="arrow-forward" size={20} color={colors.warmAccent} />
         </Pressable>
 
         {/* ─── Weekly Quests ─── */}
@@ -489,8 +515,14 @@ const styles = StyleSheet.create({
     padding: spacing.base,
     paddingBottom: spacing['3xl'],
   },
-  greetingSection: {
+  greetingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: spacing.xl,
+  },
+  greetingSection: {
+    flex: 1,
     gap: spacing.xs,
   },
   greeting: {
@@ -551,6 +583,28 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: fonts.size.xs,
     color: 'rgba(30, 30, 30, 0.7)',
+  },
+  journalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.darkGrey,
+    borderRadius: borderRadius.xl,
+    padding: spacing.base,
+    marginBottom: spacing.xl,
+    gap: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  journalButtonTitle: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.md,
+    color: colors.offWhite,
+    letterSpacing: fonts.letterSpacing.wide * 18,
+  },
+  journalButtonSubtext: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.steel,
   },
 
   /* ─── Section headers ─── */

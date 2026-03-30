@@ -4,7 +4,7 @@ import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { colors } from '@training-grounds/shared';
 import { useAuth } from '../hooks/useAuth';
 import { AuthStack } from './AuthStack';
-import { MainTabs } from './MainTabs';
+import { AppStack } from './AppStack';
 
 export type RootStackParamList = {
   Auth: undefined;
@@ -31,7 +31,7 @@ export const RootNavigator: React.FC = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {isAuthenticated ? (
-        <Stack.Screen name="Main" component={MainTabs} />
+        <Stack.Screen name="Main" component={AppStack} />
       ) : (
         <Stack.Screen name="Auth" component={AuthStack} />
       )}
