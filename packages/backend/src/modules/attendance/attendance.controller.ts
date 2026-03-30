@@ -4,6 +4,7 @@ import {
   Get,
   Body,
   Query,
+  Param,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -13,11 +14,14 @@ import {
   IsString,
   IsOptional,
   IsIn,
+  IsEmail,
 } from 'class-validator';
 import type { Discipline, TrainingIntensity } from '@training-grounds/shared';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { AttendanceService } from './attendance.service';
 import type { UserEntity } from '../../entities/user.entity';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 
 const disciplines = [
   'bjj-gi',
@@ -46,6 +50,36 @@ class CheckinDto {
   @IsOptional()
   @IsIn([...intensities])
   intensityRating?: TrainingIntensity;
+}
+
+class CoachCheckinDto {
+  @IsEmail()
+  memberEmail!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  classId!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  className!: string;
+
+  @IsIn([...disciplines])
+  discipline!: Discipline;
+
+  @IsOptional()
+  @IsString()
+  classScheduleId?: string;
+
+  @IsOptional()
+  @IsIn([...intensities])
+  intensityRating?: TrainingIntensity;
+}
+
+class SearchQueryDto {
+  @IsString()
+  @IsNotEmpty()
+  q!: string;
 }
 
 interface AuthenticatedRequest {
@@ -99,5 +133,43 @@ export class AttendanceController {
   async getStats(@Request() req: AuthenticatedRequest) {
     const stats = await this.attendanceService.getStats(req.user.id);
     return { success: true, data: stats };
+  }
+
+  // ---- Coach Check-in Endpoints ----
+
+  @Post('coach-checkin')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('coach', 'admin')
+  async coachCheckin(
+    @Body() dto: CoachCheckinDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const record = await this.attendanceService.coachCheckin(req.user.id, dto.memberEmail, {
+      classId: dto.classId,
+      className: dto.className,
+      discipline: dto.discipline,
+      classScheduleId: dto.classScheduleId,
+      intensityRating: dto.intensityRating,
+    });
+    return { success: true, data: record };
+  }
+
+  @Get('coach-checkin/search')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('coach', 'admin')
+  async searchMembers(@Query() query: SearchQueryDto) {
+    const members = await this.attendanceService.searchMembers(query.q);
+    return { success: true, data: members };
+  }
+
+  @Get('roster/:classScheduleId')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('coach', 'admin')
+  async getClassRoster(
+    @Param('classScheduleId') classScheduleId: string,
+    @Query('date') date?: string,
+  ) {
+    const roster = await this.attendanceService.getClassRoster(classScheduleId, date);
+    return { success: true, data: roster };
   }
 }

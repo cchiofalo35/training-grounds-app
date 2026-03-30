@@ -4,16 +4,25 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Repository, Between, ILike } from 'typeorm';
 import type { Discipline, TrainingIntensity } from '@training-grounds/shared';
 import { AttendanceRecordEntity } from '../../entities/attendance.entity';
 import { UserEntity } from '../../entities/user.entity';
+import { ClassScheduleEntity } from '../../entities/class-schedule.entity';
 import { GamificationService } from '../gamification/gamification.service';
 
 interface CheckinDto {
   classId: string;
   className: string;
   discipline: Discipline;
+  intensityRating?: TrainingIntensity;
+}
+
+interface CoachCheckinDto {
+  classId: string;
+  className: string;
+  discipline: Discipline;
+  classScheduleId?: string;
   intensityRating?: TrainingIntensity;
 }
 
@@ -156,6 +165,71 @@ export class AttendanceService {
       classesByDiscipline,
       averagePerWeek,
     };
+  }
+
+  // ==================== Coach Check-in ====================
+
+  async searchMembers(query: string): Promise<UserEntity[]> {
+    return this.userRepo.find({
+      where: [
+        { name: ILike(`%${query}%`) },
+        { email: ILike(`%${query}%`) },
+      ],
+      take: 10,
+      order: { name: 'ASC' },
+    });
+  }
+
+  async coachCheckin(
+    coachUserId: string,
+    memberEmail: string,
+    dto: CoachCheckinDto,
+  ): Promise<AttendanceRecordEntity> {
+    const member = await this.userRepo.findOne({ where: { email: memberEmail } });
+    if (!member) {
+      throw new NotFoundException('Member not found with that email');
+    }
+
+    const xpEarned = this.calculateCheckinXp(dto.intensityRating);
+
+    const record = this.attendanceRepo.create({
+      userId: member.id,
+      classId: dto.classId,
+      className: dto.className,
+      discipline: dto.discipline,
+      intensityRating: dto.intensityRating ?? null,
+      xpEarned,
+      checkedInByUserId: coachUserId,
+      classScheduleId: dto.classScheduleId ?? null,
+    });
+
+    const savedRecord = await this.attendanceRepo.save(record);
+
+    // Award XP and update streak
+    await this.gamificationService.awardXp(member.id, xpEarned, 'checkin');
+    await this.gamificationService.updateStreak(member.id);
+
+    return savedRecord;
+  }
+
+  async getClassRoster(
+    classScheduleId: string,
+    date?: string,
+  ): Promise<AttendanceRecordEntity[]> {
+    const qb = this.attendanceRepo
+      .createQueryBuilder('a')
+      .leftJoinAndSelect('a.user', 'user')
+      .where('a.classScheduleId = :classScheduleId', { classScheduleId });
+
+    if (date) {
+      qb.andWhere("DATE(a.checkedInAt) = :date", { date });
+    } else {
+      // Default to today
+      const today = new Date().toISOString().split('T')[0];
+      qb.andWhere("DATE(a.checkedInAt) = :date", { date: today });
+    }
+
+    return qb.orderBy('a.checkedInAt', 'ASC').getMany();
   }
 
   private calculateCheckinXp(intensity?: TrainingIntensity): number {

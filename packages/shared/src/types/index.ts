@@ -263,6 +263,94 @@ export type WsEventType =
   | 'journal.coach_feedback'
   | 'presence.update';
 
+// ==================== Class Schedule ====================
+
+export type ClassLevel = 'all-levels' | 'beginner' | 'intermediate' | 'advanced';
+
+export type QuestType = 'weekly' | 'monthly' | 'special';
+
+export interface ClassSchedule {
+  id: string;
+  name: string;
+  discipline: Discipline;
+  instructorId: string | null;
+  dayOfWeek: number;
+  startTime: string;
+  durationMinutes: number;
+  capacity: number | null;
+  level: ClassLevel;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Quest {
+  id: string;
+  name: string;
+  description: string;
+  type: QuestType;
+  criteriaJson: Record<string, unknown>;
+  xpReward: number;
+  badgeRewardId: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface UserQuest {
+  id: string;
+  userId: string;
+  questId: string;
+  quest: Quest;
+  progress: number;
+  completedAt: string | null;
+  createdAt: string;
+}
+
+export interface Course {
+  id: string;
+  name: string;
+  description: string;
+  discipline: Discipline;
+  beltLevel: string | null;
+  isPublished: boolean;
+  modules: CourseModule[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CourseModule {
+  id: string;
+  courseId: string;
+  name: string;
+  description: string | null;
+  order: number;
+  techniques: Array<{ name: string; description?: string }>;
+  createdAt: string;
+}
+
+// ==================== Analytics ====================
+
+export interface AdminOverview {
+  totalMembers: number;
+  activeMembers: number;
+  newMembersThisMonth: number;
+  checkInsThisWeek: number;
+  checkInsThisMonth: number;
+}
+
+export interface AttendanceTrend {
+  date: string;
+  count: number;
+}
+
+export interface DisciplineBreakdown {
+  discipline: Discipline;
+  count: number;
+  percentage: number;
+}
+
 // ==================== API Response ====================
 
 export interface ApiResponse<T> {

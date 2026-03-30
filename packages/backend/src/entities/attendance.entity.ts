@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import type { Discipline, TrainingIntensity } from '@training-grounds/shared';
 import { UserEntity } from './user.entity';
+import { ClassScheduleEntity } from './class-schedule.entity';
 
 @Entity('attendance_records')
 export class AttendanceRecordEntity {
@@ -37,9 +38,23 @@ export class AttendanceRecordEntity {
   @Column({ type: 'varchar', length: 30 })
   discipline!: Discipline;
 
+  @Column({ type: 'uuid', nullable: true })
+  checkedInByUserId!: string | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  classScheduleId!: string | null;
+
   @ManyToOne(() => UserEntity, (user) => user.attendanceRecords, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'userId' })
   user!: UserEntity;
+
+  @ManyToOne(() => UserEntity, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'checkedInByUserId' })
+  checkedInBy!: UserEntity | null;
+
+  @ManyToOne(() => ClassScheduleEntity, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'classScheduleId' })
+  classSchedule!: ClassScheduleEntity | null;
 }

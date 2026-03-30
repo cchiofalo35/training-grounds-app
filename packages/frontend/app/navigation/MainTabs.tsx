@@ -2,12 +2,15 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { useSelector } from 'react-redux';
 import { colors } from '@training-grounds/shared';
+import type { RootState } from '../store';
 import { DashboardScreen } from '../screens/dashboard/DashboardScreen';
 import { CheckInScreen } from '../screens/checkin/CheckInScreen';
 import { LeaderboardScreen } from '../screens/leaderboard/LeaderboardScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { JournalScreen } from '../screens/journal/JournalScreen';
+import { CoachCheckinScreen } from '../screens/coach/CoachCheckinScreen';
 
 export type MainTabParamList = {
   Dashboard: undefined;
@@ -15,6 +18,7 @@ export type MainTabParamList = {
   Leaderboard: undefined;
   Profile: undefined;
   Journal: undefined;
+  CoachCheckin: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -27,9 +31,13 @@ const TAB_ICONS: Record<string, { active: IoniconsName; inactive: IoniconsName }
   Leaderboard: { active: 'trophy', inactive: 'trophy-outline' },
   Profile: { active: 'person', inactive: 'person-outline' },
   Journal: { active: 'journal', inactive: 'journal-outline' },
+  CoachCheckin: { active: 'people', inactive: 'people-outline' },
 };
 
 export const MainTabs: React.FC = () => {
+  const userRole = useSelector((state: RootState) => state.auth.user?.role);
+  const isCoachOrAdmin = userRole === 'coach' || userRole === 'admin';
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -60,6 +68,13 @@ export const MainTabs: React.FC = () => {
         component={CheckInScreen}
         options={{ tabBarLabel: 'Check In' }}
       />
+      {isCoachOrAdmin && (
+        <Tab.Screen
+          name="CoachCheckin"
+          component={CoachCheckinScreen}
+          options={{ tabBarLabel: 'Coach' }}
+        />
+      )}
       <Tab.Screen
         name="Journal"
         component={JournalScreen}

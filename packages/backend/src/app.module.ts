@@ -7,6 +7,7 @@ import { AttendanceModule } from './modules/attendance/attendance.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
 import { JournalModule } from './modules/journal/journal.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { NotificationModule } from './modules/notification/notification.module';
     GamificationModule,
     JournalModule,
     NotificationModule,
+    AdminModule,
   ],
 })
 export class AppModule {}

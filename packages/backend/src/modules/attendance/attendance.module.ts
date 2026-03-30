@@ -3,13 +3,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
 import { AttendanceRecordEntity } from '../../entities/attendance.entity';
 import { UserEntity } from '../../entities/user.entity';
+import { ClassScheduleEntity } from '../../entities/class-schedule.entity';
 import { GamificationModule } from '../gamification/gamification.module';
 import { AttendanceController } from './attendance.controller';
 import { AttendanceService } from './attendance.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AttendanceRecordEntity, UserEntity]),
+    TypeOrmModule.forFeature([AttendanceRecordEntity, UserEntity, ClassScheduleEntity]),
     PassportModule,
     GamificationModule,
   ],
