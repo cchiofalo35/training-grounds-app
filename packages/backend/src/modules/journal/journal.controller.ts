@@ -56,4 +56,10 @@ export class JournalController {
     await this.journalService.remove(req.user.id, id);
     return { success: true, data: null };
   }
+
+  @Get(':id/comments')
+  async getComments(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
+    const comments = await this.journalService.getComments(req.user.id, id);
+    return { success: true, data: comments };
+  }
 }

@@ -8,6 +8,7 @@ import { ClassScheduleEntity } from '../../entities/class-schedule.entity';
 import { QuestEntity, UserQuestEntity } from '../../entities/quest.entity';
 import { CourseEntity, CourseModuleEntity } from '../../entities/course.entity';
 import { JournalEntryEntity } from '../../entities/journal.entity';
+import { JournalCommentEntity } from '../../entities/journal-comment.entity';
 
 @Injectable()
 export class AdminService {
@@ -32,6 +33,8 @@ export class AdminService {
     private readonly moduleRepo: Repository<CourseModuleEntity>,
     @InjectRepository(JournalEntryEntity)
     private readonly journalRepo: Repository<JournalEntryEntity>,
+    @InjectRepository(JournalCommentEntity)
+    private readonly journalCommentRepo: Repository<JournalCommentEntity>,
   ) {}
 
   // ==================== Members ====================
@@ -310,5 +313,108 @@ export class AdminService {
         percentage: total > 0 ? Math.round((count / total) * 1000) / 10 : 0,
       };
     });
+  }
+
+  // ==================== Journal Feed ====================
+
+  async getJournalFeed(
+    page = 1,
+    perPage = 20,
+    sharedOnly = true,
+  ): Promise<{ entries: any[]; total: number }> {
+    const qb = this.journalRepo
+      .createQueryBuilder('j')
+      .leftJoinAndSelect('j.user', 'u')
+      .orderBy('j.createdAt', 'DESC');
+
+    if (sharedOnly) {
+      qb.andWhere('j.isSharedWithCoach = :shared', { shared: true });
+    }
+
+    const total = await qb.getCount();
+    const entries = await qb
+      .skip((page - 1) * perPage)
+      .take(perPage)
+      .getMany();
+
+    // Load comments for each entry
+    const entryIds = entries.map((e) => e.id);
+    let commentsMap: Record<string, JournalCommentEntity[]> = {};
+
+    if (entryIds.length > 0) {
+      const comments = await this.journalCommentRepo
+        .createQueryBuilder('c')
+        .leftJoinAndSelect('c.author', 'a')
+        .where('c.journalEntryId IN (:...ids)', { ids: entryIds })
+        .orderBy('c.createdAt', 'ASC')
+        .getMany();
+
+      commentsMap = comments.reduce(
+        (acc, c) => {
+          if (!acc[c.journalEntryId]) acc[c.journalEntryId] = [];
+          acc[c.journalEntryId].push(c);
+          return acc;
+        },
+        {} as Record<string, JournalCommentEntity[]>,
+      );
+    }
+
+    const enriched = entries.map((e) => ({
+      id: e.id,
+      userId: e.userId,
+      userName: e.user?.name ?? 'Unknown',
+      userBeltRank: e.user?.beltRank ?? 'white',
+      className: e.className,
+      discipline: e.discipline,
+      exploration: e.exploration,
+      challenge: e.challenge,
+      worked: e.worked,
+      takeaways: e.takeaways,
+      nextSession: e.nextSession,
+      isSharedWithCoach: e.isSharedWithCoach,
+      createdAt: e.createdAt,
+      comments: (commentsMap[e.id] ?? []).map((c) => ({
+        id: c.id,
+        authorId: c.authorId,
+        authorName: c.author?.name ?? 'Coach',
+        authorRole: c.author?.role ?? 'coach',
+        content: c.content,
+        createdAt: c.createdAt,
+      })),
+    }));
+
+    return { entries: enriched, total };
+  }
+
+  async addJournalComment(
+    journalEntryId: string,
+    authorId: string,
+    content: string,
+  ): Promise<JournalCommentEntity> {
+    const entry = await this.journalRepo.findOne({ where: { id: journalEntryId } });
+    if (!entry) throw new NotFoundException('Journal entry not found');
+
+    const comment = this.journalCommentRepo.create({
+      journalEntryId,
+      authorId,
+      content,
+    });
+
+    return this.journalCommentRepo.save(comment);
+  }
+
+  async getJournalComments(journalEntryId: string): Promise<JournalCommentEntity[]> {
+    return this.journalCommentRepo.find({
+      where: { journalEntryId },
+      relations: ['author'],
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  // ==================== Seed Timetable ====================
+
+  async seedTimetable(): Promise<{ count: number }> {
+    const count = await this.classRepo.count();
+    return { count };
   }
 }

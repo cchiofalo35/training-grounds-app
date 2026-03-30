@@ -8,10 +8,11 @@ interface ClassItem {
   discipline: string;
   dayOfWeek: number;
   startTime: string;
-  duration: number;
+  durationMinutes: number;
   capacity: number;
   level: string;
-  instructor: string;
+  instructorName: string | null;
+  instructor: { name: string } | null;
 }
 
 interface ClassFormData {
@@ -19,37 +20,42 @@ interface ClassFormData {
   discipline: string;
   dayOfWeek: number;
   startTime: string;
-  duration: number;
+  durationMinutes: number;
   capacity: number;
   level: string;
-  instructor: string;
+  instructorName: string;
 }
 
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const DISCIPLINES = ['BJJ', 'Muay Thai', 'Boxing', 'Wrestling', 'MMA', 'No-Gi', 'Kickboxing', 'Judo', 'Open Mat'];
 const LEVELS = ['All Levels', 'Beginner', 'Intermediate', 'Advanced', 'Competition'];
 
 const DISCIPLINE_COLORS: Record<string, string> = {
+  'bjj-gi': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  'bjj-nogi': 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+  'muay-thai': 'bg-red-500/20 text-red-400 border-red-500/30',
+  boxing: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  wrestling: 'bg-green-500/20 text-green-400 border-green-500/30',
+  mma: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+  'open-mat': 'bg-warm-accent/20 text-warm-accent border-warm-accent/30',
   BJJ: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
   'Muay Thai': 'bg-red-500/20 text-red-400 border-red-500/30',
   Boxing: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
   Wrestling: 'bg-green-500/20 text-green-400 border-green-500/30',
   MMA: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
   'No-Gi': 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-  Kickboxing: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  Judo: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
   'Open Mat': 'bg-warm-accent/20 text-warm-accent border-warm-accent/30',
 };
 
 const defaultForm: ClassFormData = {
   name: '',
   discipline: 'BJJ',
-  dayOfWeek: 0,
+  dayOfWeek: 1,
   startTime: '09:00',
-  duration: 60,
+  durationMinutes: 60,
   capacity: 30,
   level: 'All Levels',
-  instructor: '',
+  instructorName: '',
 };
 
 export function ClassesPage() {
@@ -88,10 +94,10 @@ export function ClassesPage() {
       discipline: cls.discipline,
       dayOfWeek: cls.dayOfWeek,
       startTime: cls.startTime,
-      duration: cls.duration,
-      capacity: cls.capacity,
+      durationMinutes: cls.durationMinutes,
+      capacity: cls.capacity ?? 30,
       level: cls.level,
-      instructor: cls.instructor,
+      instructorName: cls.instructorName ?? cls.instructor?.name ?? '',
     });
     setEditingId(cls.id);
     setModalOpen(true);
@@ -173,8 +179,8 @@ export function ClassesPage() {
                       className={`rounded-lg p-3 border text-xs ${DISCIPLINE_COLORS[cls.discipline] || 'bg-white/5 text-steel border-white/10'}`}
                     >
                       <p className="font-semibold text-sm mb-1">{cls.name}</p>
-                      <p className="opacity-80">{cls.startTime} - {cls.duration}min</p>
-                      <p className="opacity-70 mt-1">{cls.instructor}</p>
+                      <p className="opacity-80">{cls.startTime} - {cls.durationMinutes}min</p>
+                      <p className="opacity-70 mt-1">{cls.instructorName ?? cls.instructor?.name ?? ''}</p>
                       <p className="opacity-60 mt-0.5">{cls.level}</p>
                       <div className="flex gap-1 mt-2">
                         <button
@@ -257,8 +263,8 @@ export function ClassesPage() {
                   <label className="block text-xs text-steel uppercase tracking-widest mb-1">Duration (min)</label>
                   <input
                     type="number"
-                    value={form.duration}
-                    onChange={(e) => setForm({ ...form, duration: Number(e.target.value) })}
+                    value={form.durationMinutes}
+                    onChange={(e) => setForm({ ...form, durationMinutes: Number(e.target.value) })}
                     className="w-full bg-charcoal border border-white/10 rounded-lg px-3 py-2.5 text-sm text-off-white focus:outline-none focus:border-warm-accent"
                     min={15}
                     max={180}
@@ -293,8 +299,8 @@ export function ClassesPage() {
                 <label className="block text-xs text-steel uppercase tracking-widest mb-1">Instructor</label>
                 <input
                   type="text"
-                  value={form.instructor}
-                  onChange={(e) => setForm({ ...form, instructor: e.target.value })}
+                  value={form.instructorName}
+                  onChange={(e) => setForm({ ...form, instructorName: e.target.value })}
                   className="w-full bg-charcoal border border-white/10 rounded-lg px-3 py-2.5 text-sm text-off-white focus:outline-none focus:border-warm-accent"
                   required
                 />

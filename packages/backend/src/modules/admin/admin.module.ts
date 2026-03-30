@@ -8,6 +8,7 @@ import { ClassScheduleEntity } from '../../entities/class-schedule.entity';
 import { QuestEntity, UserQuestEntity } from '../../entities/quest.entity';
 import { CourseEntity, CourseModuleEntity } from '../../entities/course.entity';
 import { JournalEntryEntity } from '../../entities/journal.entity';
+import { JournalCommentEntity } from '../../entities/journal-comment.entity';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 
@@ -24,6 +25,7 @@ import { AdminService } from './admin.service';
       CourseEntity,
       CourseModuleEntity,
       JournalEntryEntity,
+      JournalCommentEntity,
     ]),
     PassportModule,
   ],

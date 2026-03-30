@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   Query,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -573,5 +574,41 @@ export class AdminController {
   async getDisciplineBreakdown() {
     const breakdown = await this.adminService.getDisciplineBreakdown();
     return { success: true, data: breakdown };
+  }
+
+  // ---- Journal Feed ----
+
+  @Get('journal-feed')
+  async getJournalFeed(
+    @Query('page') page?: string,
+    @Query('perPage') perPage?: string,
+    @Query('sharedOnly') sharedOnly?: string,
+  ) {
+    const result = await this.adminService.getJournalFeed(
+      page ? parseInt(page, 10) : 1,
+      perPage ? parseInt(perPage, 10) : 20,
+      sharedOnly !== 'false',
+    );
+    return { success: true, data: result };
+  }
+
+  @Get('journal-feed/:entryId/comments')
+  async getJournalComments(@Param('entryId') entryId: string) {
+    const comments = await this.adminService.getJournalComments(entryId);
+    return { success: true, data: comments };
+  }
+
+  @Post('journal-feed/:entryId/comments')
+  async addJournalComment(
+    @Param('entryId') entryId: string,
+    @Request() req: any,
+    @Body() body: { content: string },
+  ) {
+    const comment = await this.adminService.addJournalComment(
+      entryId,
+      req.user.id,
+      body.content,
+    );
+    return { success: true, data: comment };
   }
 }

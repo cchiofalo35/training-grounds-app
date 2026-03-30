@@ -26,6 +26,9 @@ export class ClassScheduleEntity {
   @Column({ type: 'uuid', nullable: true })
   instructorId!: string | null;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  instructorName!: string | null;
+
   @Column({ type: 'int' }) // 0=Sunday, 1=Monday, ..., 6=Saturday
   dayOfWeek!: number;
 

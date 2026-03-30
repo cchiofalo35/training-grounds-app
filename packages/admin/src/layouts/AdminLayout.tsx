@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LayoutDashboard, Users, Calendar, Award, Swords, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Award, Swords, BookOpen, LogOut } from 'lucide-react';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -8,6 +8,7 @@ const navItems = [
   { to: '/classes', icon: Calendar, label: 'Classes' },
   { to: '/badges', icon: Award, label: 'Badges' },
   { to: '/quests', icon: Swords, label: 'Quests' },
+  { to: '/journal-feed', icon: BookOpen, label: 'Journal Feed' },
 ];
 
 export function AdminLayout() {

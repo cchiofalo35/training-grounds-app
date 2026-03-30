@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JournalEntryEntity } from '../../entities/journal.entity';
+import { JournalCommentEntity } from '../../entities/journal-comment.entity';
 import { CreateJournalDto } from './dto/create-journal.dto';
 
 @Injectable()
@@ -9,6 +10,8 @@ export class JournalService {
   constructor(
     @InjectRepository(JournalEntryEntity)
     private readonly journalRepo: Repository<JournalEntryEntity>,
+    @InjectRepository(JournalCommentEntity)
+    private readonly commentRepo: Repository<JournalCommentEntity>,
   ) {}
 
   async create(userId: string, dto: CreateJournalDto): Promise<JournalEntryEntity> {
@@ -49,5 +52,25 @@ export class JournalService {
   async remove(userId: string, id: string): Promise<void> {
     const entry = await this.findOne(userId, id);
     await this.journalRepo.remove(entry);
+  }
+
+  async getComments(userId: string, entryId: string): Promise<any[]> {
+    // Verify the entry belongs to this user
+    await this.findOne(userId, entryId);
+
+    const comments = await this.commentRepo.find({
+      where: { journalEntryId: entryId },
+      relations: ['author'],
+      order: { createdAt: 'ASC' },
+    });
+
+    return comments.map((c) => ({
+      id: c.id,
+      authorId: c.authorId,
+      authorName: c.author?.name ?? 'Coach',
+      authorRole: c.author?.role ?? 'coach',
+      content: c.content,
+      createdAt: c.createdAt,
+    }));
   }
 }
