@@ -18,17 +18,30 @@ import { NotificationModule } from './modules/notification/notification.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres' as const,
-        host: config.get<string>('DATABASE_HOST', 'localhost'),
-        port: config.get<number>('DATABASE_PORT', 5432),
-        username: config.get<string>('DATABASE_USERNAME', 'postgres'),
-        password: config.get<string>('DATABASE_PASSWORD', 'postgres'),
-        database: config.get<string>('DATABASE_NAME', 'training_grounds'),
-        entities: [__dirname + '/entities/**/*.entity{.ts,.js}'],
-        synchronize: config.get<string>('NODE_ENV', 'development') === 'development',
-        logging: config.get<string>('NODE_ENV', 'development') === 'development',
-      }),
+      useFactory: (config: ConfigService) => {
+        const databaseUrl = config.get<string>('DATABASE_URL');
+        if (databaseUrl) {
+          return {
+            type: 'postgres' as const,
+            url: databaseUrl,
+            entities: [__dirname + '/entities/**/*.entity{.ts,.js}'],
+            synchronize: true,
+            ssl: config.get<string>('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
+            logging: config.get<string>('NODE_ENV', 'development') === 'development',
+          };
+        }
+        return {
+          type: 'postgres' as const,
+          host: config.get<string>('DATABASE_HOST', 'localhost'),
+          port: config.get<number>('DATABASE_PORT', 5432),
+          username: config.get<string>('DATABASE_USERNAME', 'postgres'),
+          password: config.get<string>('DATABASE_PASSWORD', 'postgres'),
+          database: config.get<string>('DATABASE_NAME', 'training_grounds'),
+          entities: [__dirname + '/entities/**/*.entity{.ts,.js}'],
+          synchronize: config.get<string>('NODE_ENV', 'development') === 'development',
+          logging: config.get<string>('NODE_ENV', 'development') === 'development',
+        };
+      },
     }),
 
     AuthModule,

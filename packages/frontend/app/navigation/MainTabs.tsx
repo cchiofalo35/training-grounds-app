@@ -51,24 +51,24 @@ export const MainTabs: React.FC = () => {
         options={{ tabBarLabel: 'Home' }}
       />
       <Tab.Screen
-        name="CheckIn"
-        component={CheckInScreen}
-        options={{ tabBarLabel: 'Check In' }}
-      />
-      <Tab.Screen
         name="Leaderboard"
         component={LeaderboardScreen}
         options={{ tabBarLabel: 'Ranks' }}
       />
       <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{ tabBarLabel: 'Profile' }}
+        name="CheckIn"
+        component={CheckInScreen}
+        options={{ tabBarLabel: 'Check In' }}
       />
       <Tab.Screen
         name="Journal"
         component={JournalScreen}
         options={{ tabBarLabel: 'Journal' }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ tabBarLabel: 'Profile' }}
       />
     </Tab.Navigator>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -56,6 +56,118 @@ const formatRelativeDate = (dateStr: string): string => {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
+/* ─── Quest helpers ─── */
+
+interface Quest {
+  title: string;
+  current: number;
+  target: number;
+  xpReward: number;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  iconColor: string;
+}
+
+const buildWeeklyQuests = (
+  weeklyClasses: number,
+  weeklyDisciplines: Set<string>,
+  hasJournalThisWeek: boolean,
+): Quest[] => [
+  {
+    title: 'Attend 3 classes',
+    current: Math.min(weeklyClasses, 3),
+    target: 3,
+    xpReward: 150,
+    icon: 'fitness',
+    iconColor: '#FF9F43',
+  },
+  {
+    title: 'Train 2 disciplines',
+    current: Math.min(weeklyDisciplines.size, 2),
+    target: 2,
+    xpReward: 100,
+    icon: 'flash',
+    iconColor: '#54A0FF',
+  },
+  {
+    title: 'Write a journal entry',
+    current: hasJournalThisWeek ? 1 : 0,
+    target: 1,
+    xpReward: 75,
+    icon: 'journal',
+    iconColor: '#5F27CD',
+  },
+];
+
+/* ─── Heatmap helpers ─── */
+
+const MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAY_LABELS = ['M', '', 'W', '', 'F', '', ''];
+
+const buildHeatmapData = (records: AttendanceRecord[]): { weeks: number[][]; monthLabels: { label: string; weekIndex: number }[] } => {
+  const today = new Date();
+  const totalWeeks = 16; // ~4 months
+  const totalDays = totalWeeks * 7;
+
+  // Build a map of date -> class count
+  const dateCounts: Record<string, number> = {};
+  for (const record of records) {
+    const d = new Date(record.checkedInAt);
+    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    dateCounts[key] = (dateCounts[key] ?? 0) + 1;
+  }
+
+  // Build weeks grid (columns = weeks, rows = days Mon-Sun)
+  const weeks: number[][] = [];
+  const monthLabels: { label: string; weekIndex: number }[] = [];
+  let lastMonth = -1;
+
+  for (let w = 0; w < totalWeeks; w++) {
+    const week: number[] = [];
+    for (let d = 0; d < 7; d++) {
+      const dayOffset = totalDays - ((totalWeeks - w - 1) * 7 + (6 - d));
+      const date = new Date(today);
+      date.setDate(today.getDate() - (totalDays - dayOffset));
+
+      // Month label tracking
+      if (date.getMonth() !== lastMonth) {
+        lastMonth = date.getMonth();
+        monthLabels.push({ label: MONTH_LABELS[date.getMonth()], weekIndex: w });
+      }
+
+      const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      const isFuture = date > today;
+      week.push(isFuture ? -1 : (dateCounts[key] ?? 0));
+    }
+    weeks.push(week);
+  }
+
+  return { weeks, monthLabels };
+};
+
+const getCellColor = (count: number): string => {
+  if (count < 0) return 'transparent'; // future
+  if (count === 0) return colors.heatmap.empty;
+  if (count === 1) return colors.heatmap.light;
+  if (count === 2) return colors.heatmap.medium;
+  return colors.heatmap.hot;
+};
+
+/* ─── Monthly challenge helper ─── */
+
+const getMonthlyChallenge = (records: AttendanceRecord[]) => {
+  const now = new Date();
+  const monthName = now.toLocaleString('en-US', { month: 'long' });
+  const thisMonthClasses = records.filter((r) => {
+    const d = new Date(r.checkedInAt);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+  const target = 12; // 12 classes per month = ~3 per week
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const daysLeft = daysInMonth - now.getDate();
+
+  return { monthName, current: Math.min(thisMonthClasses, target), target, daysLeft };
+};
+
 export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<DashboardNavProp>();
   const dispatch = useDispatch<AppDispatch>();
@@ -81,16 +193,40 @@ export const DashboardScreen: React.FC = () => {
     setRefreshing(false);
   };
 
+  // Computed data
   const recentRecords = records.slice(0, 5);
   const firstName = user?.name?.split(' ')[0] ?? 'Athlete';
-
-  // XP level calculation (every 500 XP = 1 level)
   const totalXp = user?.totalXp ?? 0;
   const XP_PER_LEVEL = 500;
   const currentLevel = Math.floor(totalXp / XP_PER_LEVEL) + 1;
   const xpInLevel = totalXp % XP_PER_LEVEL;
   const nextLevelXp = XP_PER_LEVEL;
   const league = calculateLeague(totalXp);
+
+  // Weekly quest data
+  const weeklyData = useMemo(() => {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    const dayOfWeek = now.getDay();
+    startOfWeek.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const weekRecords = records.filter((r) => new Date(r.checkedInAt) >= startOfWeek);
+    const disciplines = new Set(weekRecords.map((r) => r.discipline));
+    return { count: weekRecords.length, disciplines };
+  }, [records]);
+
+  const weeklyQuests = useMemo(
+    () => buildWeeklyQuests(weeklyData.count, weeklyData.disciplines, false),
+    [weeklyData],
+  );
+  const completedQuests = weeklyQuests.filter((q) => q.current >= q.target).length;
+
+  // Heatmap
+  const heatmap = useMemo(() => buildHeatmapData(records), [records]);
+
+  // Monthly challenge
+  const monthly = useMemo(() => getMonthlyChallenge(records), [records]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -160,7 +296,151 @@ export const DashboardScreen: React.FC = () => {
           <Ionicons name="arrow-forward" size={24} color={colors.charcoal} />
         </Pressable>
 
-        {/* Recent Attendance */}
+        {/* ─── Weekly Quests ─── */}
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleRow}>
+            <Ionicons name="flame" size={16} color="#FF9F43" />
+            <Text style={styles.sectionTitle}>WEEKLY QUESTS</Text>
+          </View>
+          <Text style={styles.sectionCount}>{completedQuests}/{weeklyQuests.length} done</Text>
+        </View>
+
+        <Card style={styles.questsCard}>
+          {weeklyQuests.map((quest, idx) => {
+            const progress = quest.target > 0 ? quest.current / quest.target : 0;
+            const isComplete = quest.current >= quest.target;
+            return (
+              <View key={idx}>
+                <View style={styles.questRow}>
+                  <View style={[styles.questIconContainer, { backgroundColor: quest.iconColor + '20' }]}>
+                    <Ionicons name={quest.icon} size={18} color={quest.iconColor} />
+                  </View>
+                  <View style={styles.questInfo}>
+                    <Text style={[styles.questTitle, isComplete && styles.questTitleComplete]}>
+                      {quest.title}
+                    </Text>
+                    <View style={styles.questProgressBarBg}>
+                      <View
+                        style={[
+                          styles.questProgressBarFill,
+                          {
+                            width: `${Math.min(progress * 100, 100)}%`,
+                            backgroundColor: isComplete ? colors.success : colors.warmAccent,
+                          },
+                        ]}
+                      />
+                      <Text style={styles.questProgressText}>
+                        {quest.current} / {quest.target}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.questReward}>
+                    {isComplete ? (
+                      <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+                    ) : (
+                      <Text style={styles.questXp}>+{quest.xpReward}</Text>
+                    )}
+                  </View>
+                </View>
+                {idx < weeklyQuests.length - 1 && <View style={styles.questDivider} />}
+              </View>
+            );
+          })}
+        </Card>
+
+        {/* ─── Monthly Challenge ─── */}
+        <Card style={styles.monthlyCard}>
+          <View style={styles.monthlyRow}>
+            <View style={styles.monthlyInfo}>
+              <View style={styles.monthlyTitleRow}>
+                <Ionicons name="trophy" size={18} color={colors.warmAccent} />
+                <Text style={styles.monthlyTitle}>{monthly.monthName} Challenge</Text>
+              </View>
+              <Text style={styles.monthlySubtext}>
+                {monthly.current >= monthly.target
+                  ? 'Challenge complete! You crushed it.'
+                  : `${monthly.daysLeft} days left`}
+              </Text>
+              <View style={styles.monthlyBarBg}>
+                <View
+                  style={[
+                    styles.monthlyBarFill,
+                    { width: `${Math.min((monthly.current / monthly.target) * 100, 100)}%` },
+                  ]}
+                />
+              </View>
+              <Text style={styles.monthlyProgress}>
+                <Text style={styles.monthlyProgressBold}>{monthly.current}</Text>
+                {' / '}
+                {monthly.target} classes
+              </Text>
+            </View>
+            <View style={styles.monthlyBadge}>
+              <Ionicons
+                name={monthly.current >= monthly.target ? 'medal' : 'medal-outline'}
+                size={40}
+                color={monthly.current >= monthly.target ? colors.warmAccent : colors.steel}
+              />
+            </View>
+          </View>
+        </Card>
+
+        {/* ─── Training Heatmap ─── */}
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleRow}>
+            <Ionicons name="grid" size={14} color={colors.warmAccent} />
+            <Text style={styles.sectionTitle}>TRAINING ACTIVITY</Text>
+          </View>
+          <Text style={styles.sectionCount}>{records.length} classes</Text>
+        </View>
+
+        <Card style={styles.heatmapCard}>
+          {/* Month labels */}
+          <View style={styles.heatmapMonthRow}>
+            <View style={styles.heatmapDayLabelSpacer} />
+            {heatmap.weeks.map((_, weekIdx) => {
+              const label = heatmap.monthLabels.find((m) => m.weekIndex === weekIdx);
+              return (
+                <View key={weekIdx} style={styles.heatmapCell}>
+                  {label && (
+                    <Text style={styles.heatmapMonthLabel}>{label.label}</Text>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+
+          {/* Grid rows (Mon through Sun) */}
+          {Array.from({ length: 7 }).map((_, dayIdx) => (
+            <View key={dayIdx} style={styles.heatmapRow}>
+              <View style={styles.heatmapDayLabel}>
+                <Text style={styles.heatmapDayText}>{DAY_LABELS[dayIdx]}</Text>
+              </View>
+              {heatmap.weeks.map((week, weekIdx) => (
+                <View
+                  key={weekIdx}
+                  style={[
+                    styles.heatmapCellBox,
+                    { backgroundColor: getCellColor(week[dayIdx]) },
+                  ]}
+                />
+              ))}
+            </View>
+          ))}
+
+          {/* Legend */}
+          <View style={styles.heatmapLegend}>
+            <Text style={styles.heatmapLegendText}>Less</Text>
+            {[colors.heatmap.empty, colors.heatmap.light, colors.heatmap.medium, colors.heatmap.hot].map(
+              (c, i) => (
+                <View key={i} style={[styles.heatmapLegendBox, { backgroundColor: c }]} />
+              ),
+            )}
+            <Text style={styles.heatmapLegendText}>More</Text>
+          </View>
+        </Card>
+
+        {/* ─── Recent Classes ─── */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>RECENT CLASSES</Text>
           <Text style={styles.sectionCount}>{records.length} total</Text>
@@ -196,6 +476,9 @@ export const DashboardScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
+
+const CELL_SIZE = 14;
+const CELL_GAP = 3;
 
 const styles = StyleSheet.create({
   container: {
@@ -269,11 +552,19 @@ const styles = StyleSheet.create({
     fontSize: fonts.size.xs,
     color: 'rgba(30, 30, 30, 0.7)',
   },
+
+  /* ─── Section headers ─── */
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.md,
+    marginTop: spacing.md,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   sectionTitle: {
     fontFamily: 'Inter',
@@ -288,6 +579,198 @@ const styles = StyleSheet.create({
     fontSize: fonts.size.xs,
     color: colors.textMuted,
   },
+
+  /* ─── Weekly Quests ─── */
+  questsCard: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.base,
+    gap: 0,
+  },
+  questRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  questIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  questInfo: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  questTitle: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.semibold,
+    color: colors.offWhite,
+  },
+  questTitleComplete: {
+    color: colors.steel,
+    textDecorationLine: 'line-through',
+  },
+  questProgressBarBg: {
+    height: 20,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: borderRadius.full,
+    overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  questProgressBarFill: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    borderRadius: borderRadius.full,
+  },
+  questProgressText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.bold,
+    color: colors.offWhite,
+    textAlign: 'center',
+  },
+  questReward: {
+    alignItems: 'center',
+    minWidth: 40,
+  },
+  questXp: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.bold,
+    color: colors.warmAccent,
+  },
+  questDivider: {
+    height: 1,
+    backgroundColor: colors.borderDark,
+  },
+
+  /* ─── Monthly Challenge ─── */
+  monthlyCard: {
+    borderWidth: 1,
+    borderColor: 'rgba(201, 168, 124, 0.25)',
+    marginTop: spacing.md,
+    marginBottom: spacing.md,
+  },
+  monthlyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.base,
+  },
+  monthlyInfo: {
+    flex: 1,
+    gap: spacing.sm,
+  },
+  monthlyTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  monthlyTitle: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.lg,
+    color: colors.warmAccent,
+    letterSpacing: fonts.letterSpacing.wide * 20,
+  },
+  monthlySubtext: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.steel,
+  },
+  monthlyBarBg: {
+    height: 8,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: borderRadius.full,
+    overflow: 'hidden',
+  },
+  monthlyBarFill: {
+    height: '100%',
+    backgroundColor: colors.warmAccent,
+    borderRadius: borderRadius.full,
+  },
+  monthlyProgress: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.steel,
+  },
+  monthlyProgressBold: {
+    fontWeight: fonts.weight.bold,
+    color: colors.warmAccent,
+  },
+  monthlyBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(201, 168, 124, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  /* ─── Training Heatmap ─── */
+  heatmapCard: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+  },
+  heatmapMonthRow: {
+    flexDirection: 'row',
+    marginBottom: 2,
+  },
+  heatmapDayLabelSpacer: {
+    width: 18,
+  },
+  heatmapRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: CELL_GAP,
+  },
+  heatmapDayLabel: {
+    width: 18,
+    alignItems: 'center',
+  },
+  heatmapDayText: {
+    fontFamily: 'Inter',
+    fontSize: 9,
+    color: colors.textMuted,
+  },
+  heatmapCell: {
+    width: CELL_SIZE,
+    height: 14,
+    marginRight: CELL_GAP,
+  },
+  heatmapCellBox: {
+    width: CELL_SIZE,
+    height: CELL_SIZE,
+    borderRadius: 3,
+    marginRight: CELL_GAP,
+  },
+  heatmapMonthLabel: {
+    fontFamily: 'Inter',
+    fontSize: 9,
+    color: colors.textMuted,
+  },
+  heatmapLegend: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 4,
+    marginTop: spacing.sm,
+  },
+  heatmapLegendText: {
+    fontFamily: 'Inter',
+    fontSize: 9,
+    color: colors.textMuted,
+  },
+  heatmapLegendBox: {
+    width: 10,
+    height: 10,
+    borderRadius: 2,
+  },
+
+  /* ─── Recent classes ─── */
   attendanceCard: {
     marginBottom: spacing.sm,
   },
