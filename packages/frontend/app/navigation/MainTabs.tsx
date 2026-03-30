@@ -11,10 +11,12 @@ import { LeaderboardScreen } from '../screens/leaderboard/LeaderboardScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { JournalScreen } from '../screens/journal/JournalScreen';
 import { CoachCheckinScreen } from '../screens/coach/CoachCheckinScreen';
+import { CommunityScreen } from '../screens/community/CommunityScreen';
 
 export type MainTabParamList = {
   Dashboard: undefined;
   CheckIn: undefined;
+  Community: undefined;
   Leaderboard: undefined;
   Profile: undefined;
   Journal: undefined;
@@ -32,6 +34,7 @@ const TAB_ICONS: Record<string, { active: IoniconsName; inactive: IoniconsName }
   Profile: { active: 'person', inactive: 'person-outline' },
   Journal: { active: 'journal', inactive: 'journal-outline' },
   CoachCheckin: { active: 'people', inactive: 'people-outline' },
+  Community: { active: 'chatbubbles', inactive: 'chatbubbles-outline' },
 };
 
 export const MainTabs: React.FC = () => {
@@ -67,6 +70,11 @@ export const MainTabs: React.FC = () => {
         name="CheckIn"
         component={CheckInScreen}
         options={{ tabBarLabel: 'Check In' }}
+      />
+      <Tab.Screen
+        name="Community"
+        component={CommunityScreen}
+        options={{ tabBarLabel: 'Community' }}
       />
       {isCoachOrAdmin && (
         <Tab.Screen

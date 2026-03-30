@@ -8,6 +8,7 @@ import { GamificationModule } from './modules/gamification/gamification.module';
 import { JournalModule } from './modules/journal/journal.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { CommunityModule } from './modules/community/community.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { AdminModule } from './modules/admin/admin.module';
     JournalModule,
     NotificationModule,
     AdminModule,
+    CommunityModule,
   ],
 })
 export class AppModule {}

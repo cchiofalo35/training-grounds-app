@@ -8,6 +8,7 @@ import { ClassesPage } from './pages/ClassesPage';
 import { BadgesPage } from './pages/BadgesPage';
 import { QuestsPage } from './pages/QuestsPage';
 import { JournalFeedPage } from './pages/JournalFeedPage';
+import { ChannelsPage } from './pages/ChannelsPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="badges" element={<BadgesPage />} />
         <Route path="quests" element={<QuestsPage />} />
         <Route path="journal-feed" element={<JournalFeedPage />} />
+        <Route path="channels" element={<ChannelsPage />} />
       </Route>
     </Routes>
   );

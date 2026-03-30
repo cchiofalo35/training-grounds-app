@@ -46,6 +46,10 @@ export class AuthModule implements OnModuleInit {
           'FIREBASE_PROJECT_ID',
           'training-grounds-app',
         ),
+        storageBucket: this.config.get<string>(
+          'FIREBASE_STORAGE_BUCKET',
+          'training-grounds-app.firebasestorage.app',
+        ),
       });
     }
   }
