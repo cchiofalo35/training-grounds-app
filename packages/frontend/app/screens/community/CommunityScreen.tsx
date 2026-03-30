@@ -555,6 +555,7 @@ const styles = StyleSheet.create({
   },
   channelEmoji: {
     fontSize: 20,
+    fontFamily: 'System',
   },
   channelInfo: {
     flex: 1,

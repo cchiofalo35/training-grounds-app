@@ -12,7 +12,13 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
+// Lazy-loaded to avoid crash when native module isn't built yet
+let ImagePicker: typeof import('expo-image-picker') | null = null;
+try {
+  ImagePicker = require('expo-image-picker');
+} catch {
+  // Native module not available — photo picking will be disabled
+}
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
 import type { UserBadge } from '@training-grounds/shared';
 import type { RootState, AppDispatch } from '../../redux/store';
@@ -52,6 +58,11 @@ export const ProfileScreen: React.FC = () => {
   }, [dispatch]);
 
   const handlePickPhoto = async () => {
+    if (!ImagePicker) {
+      Alert.alert('Not Available', 'Photo picker requires a new build. It will work in the TestFlight version.');
+      return;
+    }
+
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(

@@ -33,7 +33,6 @@ export const AppStack: React.FC = () => {
           headerTitleStyle: {
             fontFamily: 'BebasNeue',
             fontSize: 20,
-            letterSpacing: 1.5,
           },
           headerShadowVisible: false,
           animation: 'slide_from_right',
