@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
 
 interface XpProgressBarProps {
@@ -20,28 +21,28 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.labelRow}>
-          <Text style={styles.xpIcon}>⚡</Text>
+          <Ionicons name="flash" size={16} color={colors.warmAccent} />
           <Text style={styles.xpLabel}>
             {currentXp.toLocaleString()} XP
           </Text>
-          {level !== undefined && (
-            <Text style={styles.levelLabel}>Level {level}</Text>
-          )}
         </View>
-        <Text style={styles.threshold}>
-          {nextLevelXp.toLocaleString()} XP
-        </Text>
+        {level !== undefined && (
+          <Text style={styles.levelLabel}>Lvl {level}</Text>
+        )}
       </View>
       <View style={styles.track}>
         <View style={[styles.fill, { width: `${percentage}%` }]} />
       </View>
+      <Text style={styles.threshold}>
+        {nextLevelXp.toLocaleString()} XP to next level
+      </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.sm,
+    gap: 6,
   },
   header: {
     flexDirection: 'row',
@@ -51,31 +52,26 @@ const styles = StyleSheet.create({
   labelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-  },
-  xpIcon: {
-    fontSize: 16,
+    gap: 4,
   },
   xpLabel: {
     fontFamily: 'Inter',
-    fontSize: fonts.size.base,
-    fontWeight: fonts.weight.semibold,
+    fontSize: fonts.size.sm,
+    fontWeight: '600' as const,
     color: colors.warmAccent,
   },
   levelLabel: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium,
-    color: colors.steel,
-    marginLeft: spacing.xs,
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.base,
+    color: colors.offWhite,
   },
   threshold: {
     fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    color: colors.steel,
+    fontSize: 10,
+    color: colors.textMuted,
   },
   track: {
-    height: 8,
+    height: 6,
     backgroundColor: colors.darkGrey,
     borderRadius: borderRadius.full,
     overflow: 'hidden',

@@ -4,6 +4,7 @@ import type { RootState, AppDispatch } from '../redux/store';
 import {
   login as loginThunk,
   register as registerThunk,
+  signInWithApple as signInWithAppleThunk,
   logout as logoutThunk,
   restoreSession,
   clearError,
@@ -29,6 +30,10 @@ export const useAuth = () => {
     [dispatch],
   );
 
+  const signInWithApple = useCallback(() => {
+    return dispatch(signInWithAppleThunk()).unwrap();
+  }, [dispatch]);
+
   const logout = useCallback(() => {
     return dispatch(logoutThunk()).unwrap();
   }, [dispatch]);
@@ -48,6 +53,7 @@ export const useAuth = () => {
     error,
     login,
     register,
+    signInWithApple,
     logout,
     restore,
     dismissError,

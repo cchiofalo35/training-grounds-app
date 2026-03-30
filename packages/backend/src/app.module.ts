@@ -5,6 +5,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
+import { JournalModule } from './modules/journal/journal.module';
 import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
@@ -34,6 +35,7 @@ import { NotificationModule } from './modules/notification/notification.module';
     UserModule,
     AttendanceModule,
     GamificationModule,
+    JournalModule,
     NotificationModule,
   ],
 })

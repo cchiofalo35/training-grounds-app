@@ -1,4 +1,4 @@
-import type { StreakInfo, LeaderboardEntry, LeagueType } from '@training-grounds/shared';
+import type { StreakInfo, LeaderboardEntry, LeagueType, UserBadge } from '@training-grounds/shared';
 import api from './api';
 
 interface BackendApiResponse<T> {
@@ -12,10 +12,16 @@ export const gamificationService = {
     return response.data.data;
   },
 
-  async getLeaderboard(league: LeagueType): Promise<LeaderboardEntry[]> {
+  async getLeaderboard(_league?: LeagueType): Promise<LeaderboardEntry[]> {
+    // Backend returns all users sorted by XP; league filtering done client-side
     const response = await api.get<BackendApiResponse<LeaderboardEntry[]>>(
-      `/gamification/leaderboard?league=${league}`,
+      '/gamification/leaderboard',
     );
+    return response.data.data;
+  },
+
+  async getBadges(): Promise<UserBadge[]> {
+    const response = await api.get<BackendApiResponse<UserBadge[]>>('/gamification/badges');
     return response.data.data;
   },
 

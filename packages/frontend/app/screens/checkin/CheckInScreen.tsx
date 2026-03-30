@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useDispatch, useSelector } from 'react-redux';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
 import type { ClassSession, Discipline } from '@training-grounds/shared';
 import type { AppDispatch, RootState } from '../../redux/store';
@@ -135,7 +136,7 @@ export const CheckInScreen: React.FC = () => {
       return (
         <SafeAreaView style={styles.container}>
           <View style={styles.permissionContainer}>
-            <Text style={styles.permissionIcon}>📷</Text>
+            <Ionicons name="camera-outline" size={48} color={colors.warmAccent} />
             <Text style={styles.permissionTitle}>Camera Access</Text>
             <Text style={styles.permissionText}>
               We need camera access to scan the class QR code for check-in.
@@ -252,7 +253,7 @@ export const CheckInScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.confirmContainer}>
-        <Text style={styles.confirmIcon}>✅</Text>
+        <Ionicons name="checkmark-circle" size={48} color={colors.success} />
         <Text style={styles.confirmTitle}>CONFIRM CHECK-IN</Text>
 
         {selectedClass ? (

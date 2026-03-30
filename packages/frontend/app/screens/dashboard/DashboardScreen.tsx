@@ -11,6 +11,7 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
 import type { AttendanceRecord, Discipline } from '@training-grounds/shared';
 import type { RootState, AppDispatch } from '../../redux/store';
@@ -32,6 +33,15 @@ const DISCIPLINE_LABELS: Record<Discipline, string> = {
   mma: 'MMA',
   boxing: 'Boxing',
   'open-mat': 'Open Mat',
+};
+
+const calculateLeague = (xp: number): { name: string; color: string } => {
+  if (xp >= 50000) return { name: 'Black Belt Elite', color: colors.league.blackBelt };
+  if (xp >= 25000) return { name: 'Diamond', color: colors.league.diamond };
+  if (xp >= 10000) return { name: 'Platinum', color: colors.league.platinum };
+  if (xp >= 5000) return { name: 'Gold', color: colors.league.gold };
+  if (xp >= 2000) return { name: 'Silver', color: colors.league.silver };
+  return { name: 'Bronze', color: colors.league.bronze };
 };
 
 const formatRelativeDate = (dateStr: string): string => {
@@ -74,11 +84,13 @@ export const DashboardScreen: React.FC = () => {
   const recentRecords = records.slice(0, 5);
   const firstName = user?.name?.split(' ')[0] ?? 'Athlete';
 
-  // XP level calculation (every 1000 XP = 1 level)
+  // XP level calculation (every 500 XP = 1 level)
   const totalXp = user?.totalXp ?? 0;
-  const currentLevel = Math.floor(totalXp / 1000) + 1;
-  const xpInLevel = totalXp % 1000;
-  const nextLevelXp = 1000;
+  const XP_PER_LEVEL = 500;
+  const currentLevel = Math.floor(totalXp / XP_PER_LEVEL) + 1;
+  const xpInLevel = totalXp % XP_PER_LEVEL;
+  const nextLevelXp = XP_PER_LEVEL;
+  const league = calculateLeague(totalXp);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -99,6 +111,12 @@ export const DashboardScreen: React.FC = () => {
           {user && (
             <BeltDisplay belt={user.beltRank} stripes={user.stripes} size="small" />
           )}
+          <View style={styles.leagueBadge}>
+            <Ionicons name="shield" size={16} color={league.color} />
+            <Text style={[styles.leagueText, { color: league.color }]}>
+              {league.name} League
+            </Text>
+          </View>
         </View>
 
         {/* Streak & XP Row */}
@@ -134,12 +152,12 @@ export const DashboardScreen: React.FC = () => {
           ]}
           onPress={() => navigation.navigate('CheckIn')}
         >
-          <Text style={styles.checkInIcon}>📷</Text>
-          <View>
+          <Ionicons name="qr-code" size={28} color={colors.charcoal} />
+          <View style={styles.checkInTextContainer}>
             <Text style={styles.checkInTitle}>QUICK CHECK-IN</Text>
             <Text style={styles.checkInSubtext}>Scan QR or select class</Text>
           </View>
-          <Text style={styles.checkInArrow}>→</Text>
+          <Ionicons name="arrow-forward" size={24} color={colors.charcoal} />
         </Pressable>
 
         {/* Recent Attendance */}
@@ -237,8 +255,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
     gap: spacing.md,
   },
-  checkInIcon: {
-    fontSize: 28,
+  checkInTextContainer: {
+    flex: 1,
   },
   checkInTitle: {
     fontFamily: 'BebasNeue',
@@ -250,12 +268,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: fonts.size.xs,
     color: 'rgba(30, 30, 30, 0.7)',
-  },
-  checkInArrow: {
-    marginLeft: 'auto',
-    fontSize: fonts.size.xl,
-    color: colors.charcoal,
-    fontWeight: fonts.weight.bold,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -313,6 +325,22 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: fonts.size.xs,
     color: colors.textMuted,
+  },
+  leagueBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: 'rgba(201, 168, 124, 0.08)',
+    paddingVertical: 4,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
+  },
+  leagueText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.semibold as any,
+    textTransform: 'uppercase',
+    letterSpacing: fonts.letterSpacing.wider * 11,
   },
   emptyText: {
     fontFamily: 'Inter',

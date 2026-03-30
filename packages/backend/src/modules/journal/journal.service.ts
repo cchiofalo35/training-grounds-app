@@ -1,0 +1,53 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { JournalEntryEntity } from '../../entities/journal.entity';
+import { CreateJournalDto } from './dto/create-journal.dto';
+
+@Injectable()
+export class JournalService {
+  constructor(
+    @InjectRepository(JournalEntryEntity)
+    private readonly journalRepo: Repository<JournalEntryEntity>,
+  ) {}
+
+  async create(userId: string, dto: CreateJournalDto): Promise<JournalEntryEntity> {
+    const entry = this.journalRepo.create({
+      userId,
+      attendanceId: dto.attendanceId ?? null,
+      className: dto.className ?? null,
+      discipline: (dto.discipline as any) ?? null,
+      exploration: dto.exploration,
+      challenge: dto.challenge,
+      worked: dto.worked,
+      takeaways: dto.takeaways,
+      nextSession: dto.nextSession,
+      isSharedWithCoach: dto.isSharedWithCoach ?? false,
+    });
+    return this.journalRepo.save(entry);
+  }
+
+  async findAll(userId: string): Promise<JournalEntryEntity[]> {
+    return this.journalRepo.find({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async findOne(userId: string, id: string): Promise<JournalEntryEntity> {
+    const entry = await this.journalRepo.findOne({ where: { id, userId } });
+    if (!entry) throw new NotFoundException('Journal entry not found');
+    return entry;
+  }
+
+  async update(userId: string, id: string, dto: Partial<CreateJournalDto>): Promise<JournalEntryEntity> {
+    const entry = await this.findOne(userId, id);
+    Object.assign(entry, dto);
+    return this.journalRepo.save(entry);
+  }
+
+  async remove(userId: string, id: string): Promise<void> {
+    const entry = await this.findOne(userId, id);
+    await this.journalRepo.remove(entry);
+  }
+}

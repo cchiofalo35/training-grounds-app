@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
 import type { BeltRank } from '@training-grounds/shared';
 import { useAuth } from '../../hooks/useAuth';
@@ -31,7 +32,12 @@ const BELT_OPTIONS: { value: BeltRank; label: string; color: string }[] = [
 
 export const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<RegisterNavProp>();
-  const { register, isLoading, error, dismissError } = useAuth();
+  const { register, signInWithApple, isLoading, error, dismissError } = useAuth();
+  const [appleAvailable, setAppleAvailable] = useState(false);
+
+  useEffect(() => {
+    AppleAuthentication.isAvailableAsync().then(setAppleAvailable);
+  }, []);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -170,6 +176,30 @@ export const RegisterScreen: React.FC = () => {
             />
           </View>
 
+          {/* Quick Sign-Up with Apple */}
+          {appleAvailable && (
+            <View style={styles.appleSection}>
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>OR</Text>
+                <View style={styles.dividerLine} />
+              </View>
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP}
+                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
+                cornerRadius={borderRadius.md}
+                style={styles.appleButton}
+                onPress={async () => {
+                  try {
+                    await signInWithApple();
+                  } catch {
+                    // handled by Redux
+                  }
+                }}
+              />
+            </View>
+          )}
+
           {/* Login Link */}
           <Pressable
             style={styles.loginLink}
@@ -304,6 +334,30 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginTop: spacing.sm,
+  },
+  appleSection: {
+    marginTop: spacing.lg,
+    gap: spacing.base,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.borderDark,
+  },
+  dividerText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.steel,
+    marginHorizontal: spacing.md,
+    letterSpacing: fonts.letterSpacing.widest * 11,
+  },
+  appleButton: {
+    height: 50,
+    width: '100%',
   },
   loginLink: {
     marginTop: spacing['2xl'],

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing } from '@training-grounds/shared';
 
 interface StreakBadgeProps {
@@ -18,27 +19,31 @@ export const StreakBadge: React.FC<StreakBadgeProps> = ({
 
   return (
     <View style={[styles.container, isLarge && styles.containerLarge]}>
-      <Text style={[styles.fireIcon, isLarge && styles.fireIconLarge]}>
-        🔥
-      </Text>
-      <Text
-        style={[
-          styles.count,
-          isLarge && styles.countLarge,
-          { color: accentColor },
-        ]}
-      >
-        {count}
-      </Text>
-      <Text
-        style={[
-          styles.label,
-          isLarge && styles.labelLarge,
-          { color: isActive ? colors.textLight : colors.steel },
-        ]}
-      >
-        day streak
-      </Text>
+      <Ionicons
+        name="flame"
+        size={isLarge ? 28 : 18}
+        color={isActive ? '#FF6B35' : colors.steel}
+      />
+      <View style={styles.textContainer}>
+        <Text
+          style={[
+            styles.count,
+            isLarge && styles.countLarge,
+            { color: accentColor },
+          ]}
+        >
+          {count}
+        </Text>
+        <Text
+          style={[
+            styles.label,
+            isLarge && styles.labelLarge,
+            { color: isActive ? colors.textLight : colors.steel },
+          ]}
+        >
+          day streak
+        </Text>
+      </View>
     </View>
   );
 };
@@ -50,18 +55,18 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   containerLarge: {
-    gap: spacing.sm,
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 2,
   },
-  fireIcon: {
-    fontSize: 18,
-  },
-  fireIconLarge: {
-    fontSize: 28,
+  textContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
   },
   count: {
     fontFamily: 'BebasNeue',
     fontSize: fonts.size.lg,
-    fontWeight: fonts.weight.bold,
   },
   countLarge: {
     fontSize: fonts.size['2xl'],
@@ -69,7 +74,6 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: 'Inter',
     fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.medium,
   },
   labelLarge: {
     fontSize: fonts.size.sm,

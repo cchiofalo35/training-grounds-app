@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import type { StreakInfo, LeaderboardEntry, LeagueType } from '@training-grounds/shared';
+import type { StreakInfo, LeaderboardEntry, LeagueType, UserBadge } from '@training-grounds/shared';
 import { gamificationService } from '../../services/gamificationService';
 
 interface GamificationState {
@@ -8,6 +8,8 @@ interface GamificationState {
   selectedLeague: LeagueType;
   isLoadingStreak: boolean;
   isLoadingLeaderboard: boolean;
+  badges: UserBadge[];
+  isLoadingBadges: boolean;
   error: string | null;
 }
 
@@ -17,6 +19,8 @@ const initialState: GamificationState = {
   selectedLeague: 'bronze',
   isLoadingStreak: false,
   isLoadingLeaderboard: false,
+  badges: [],
+  isLoadingBadges: false,
   error: null,
 };
 
@@ -39,6 +43,18 @@ export const fetchLeaderboard = createAsyncThunk(
       return await gamificationService.getLeaderboard(league);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to load leaderboard';
+      return rejectWithValue(message);
+    }
+  },
+);
+
+export const fetchBadges = createAsyncThunk(
+  'gamification/fetchBadges',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await gamificationService.getBadges();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to load badges';
       return rejectWithValue(message);
     }
   },
@@ -91,6 +107,18 @@ const gamificationSlice = createSlice({
       })
       .addCase(fetchLeaderboard.rejected, (state, action) => {
         state.isLoadingLeaderboard = false;
+        state.error = action.payload as string;
+      })
+      // Fetch badges
+      .addCase(fetchBadges.pending, (state) => {
+        state.isLoadingBadges = true;
+      })
+      .addCase(fetchBadges.fulfilled, (state, action) => {
+        state.isLoadingBadges = false;
+        state.badges = action.payload;
+      })
+      .addCase(fetchBadges.rejected, (state, action) => {
+        state.isLoadingBadges = false;
         state.error = action.payload as string;
       })
       // Freeze streak

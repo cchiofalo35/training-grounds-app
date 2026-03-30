@@ -10,8 +10,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
-import type { LeaderboardEntry, LeagueType, BeltRank } from '@training-grounds/shared';
+import type { LeaderboardEntry, LeagueType } from '@training-grounds/shared';
 import type { AppDispatch, RootState } from '../../redux/store';
 import {
   fetchLeaderboard,
@@ -29,10 +30,10 @@ const LEAGUE_TABS: { key: LeagueType; label: string; color: string }[] = [
   { key: 'black-belt-elite', label: 'Black Belt', color: colors.league.blackBelt },
 ];
 
-const RANK_MEDALS: Record<number, string> = {
-  1: '🥇',
-  2: '🥈',
-  3: '🥉',
+const RANK_COLORS: Record<number, string> = {
+  1: '#FFD700',
+  2: '#C0C0C0',
+  3: '#CD7F32',
 };
 
 export const LeaderboardScreen: React.FC = () => {
@@ -53,7 +54,7 @@ export const LeaderboardScreen: React.FC = () => {
   const renderEntry = ({ item }: { item: LeaderboardEntry }) => {
     const isCurrentUser = item.userId === currentUserId;
     const isTopThree = item.rank <= 3;
-    const medal = RANK_MEDALS[item.rank];
+    const medalColor = RANK_COLORS[item.rank];
 
     return (
       <Card
@@ -66,8 +67,8 @@ export const LeaderboardScreen: React.FC = () => {
         <View style={styles.entryRow}>
           {/* Rank */}
           <View style={styles.rankContainer}>
-            {medal ? (
-              <Text style={styles.medal}>{medal}</Text>
+            {medalColor ? (
+              <Ionicons name="medal" size={24} color={medalColor} />
             ) : (
               <Text style={styles.rankNumber}>#{item.rank}</Text>
             )}
@@ -183,7 +184,7 @@ export const LeaderboardScreen: React.FC = () => {
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>🏆</Text>
+              <Ionicons name="trophy-outline" size={48} color={colors.steel} />
               <Text style={styles.emptyText}>
                 No entries yet for this league.
               </Text>

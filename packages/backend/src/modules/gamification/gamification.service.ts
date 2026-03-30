@@ -25,6 +25,14 @@ export class GamificationService {
     private readonly notificationService: NotificationService,
   ) {}
 
+  async getUserBadges(userId: string): Promise<UserBadgeEntity[]> {
+    return this.userBadgeRepo.find({
+      where: { userId },
+      order: { earnedAt: 'DESC' },
+      relations: ['badge'],
+    });
+  }
+
   async awardXp(
     userId: string,
     amount: number,

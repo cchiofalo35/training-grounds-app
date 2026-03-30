@@ -1,16 +1,15 @@
 /**
- * Firebase Auth service using REST API.
+ * Firebase Auth service using REST API + Apple Sign-In.
  * Works with Firebase Auth Emulator in dev and real Firebase in production.
- *
- * For React Native, we use the REST API directly instead of the Firebase JS SDK
- * to avoid native module complexity during early development.
  */
+
+import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Crypto from 'expo-crypto';
 
 const FIREBASE_PROJECT_ID = process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID ?? 'training-grounds-app';
 const FIREBASE_API_KEY = process.env.EXPO_PUBLIC_FIREBASE_API_KEY ?? 'fake-api-key';
 
-// In dev, point to the emulator. Use machine IP so device/simulator can reach it.
-// In production, use the real Firebase endpoint.
+// In dev, point to the emulator. In production, use the real Firebase endpoint.
 const FIREBASE_EMULATOR_HOST = process.env.EXPO_PUBLIC_FIREBASE_EMULATOR_HOST ?? '127.0.0.1:9099';
 const FIREBASE_AUTH_URL = __DEV__
   ? `http://${FIREBASE_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1`
@@ -23,6 +22,8 @@ interface FirebaseAuthResponse {
   expiresIn: string;
   localId: string;
   registered?: boolean;
+  displayName?: string;
+  fullName?: string;
 }
 
 interface FirebaseError {
@@ -33,7 +34,7 @@ interface FirebaseError {
   };
 }
 
-class FirebaseAuthError extends Error {
+export class FirebaseAuthError extends Error {
   code: string;
 
   constructor(firebaseMessage: string) {
@@ -73,6 +74,12 @@ async function firebaseRequest(endpoint: string, body: Record<string, unknown>):
   return data as FirebaseAuthResponse;
 }
 
+export interface AppleSignInResult {
+  firebaseToken: string;
+  email: string | null;
+  fullName: string | null;
+}
+
 export const firebaseAuth = {
   /**
    * Create a new user with email and password.
@@ -98,5 +105,62 @@ export const firebaseAuth = {
       returnSecureToken: true,
     });
     return result.idToken;
+  },
+
+  /**
+   * Sign in with Apple.
+   * Uses Apple's native auth flow, then exchanges the Apple credential
+   * for a Firebase ID token via signInWithIdp.
+   *
+   * Returns the Firebase token plus the user's name/email from Apple
+   * (Apple only provides name on first sign-in).
+   */
+  async signInWithApple(): Promise<AppleSignInResult> {
+    // Generate nonce for security
+    const nonce = await Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      Math.random().toString(36) + Date.now().toString(),
+    );
+
+    const credential = await AppleAuthentication.signInAsync({
+      requestedScopes: [
+        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      ],
+      nonce,
+    });
+
+    if (!credential.identityToken) {
+      throw new Error('Apple Sign-In failed: no identity token received.');
+    }
+
+    // Build full name from Apple credential (only available on first sign-in)
+    const fullName = credential.fullName
+      ? [credential.fullName.givenName, credential.fullName.familyName]
+          .filter(Boolean)
+          .join(' ') || null
+      : null;
+
+    // Exchange Apple identity token for Firebase token
+    const postBody = `id_token=${credential.identityToken}&providerId=apple.com&nonce=${nonce}`;
+    const result = await firebaseRequest('accounts:signInWithIdp', {
+      postBody,
+      requestUri: 'https://training-grounds-app.firebaseapp.com/__/auth/handler',
+      returnIdpCredential: true,
+      returnSecureToken: true,
+    });
+
+    return {
+      firebaseToken: result.idToken,
+      email: credential.email ?? result.email ?? null,
+      fullName,
+    };
+  },
+
+  /**
+   * Check if Apple Sign-In is available on this device.
+   */
+  async isAppleSignInAvailable(): Promise<boolean> {
+    return await AppleAuthentication.isAvailableAsync();
   },
 };

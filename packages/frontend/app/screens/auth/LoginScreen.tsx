@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../../components/common/Button';
@@ -22,10 +23,15 @@ type LoginNavProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
 export const LoginScreen: React.FC = () => {
   const navigation = useNavigation<LoginNavProp>();
-  const { login, isLoading, error, dismissError } = useAuth();
+  const { login, signInWithApple, isLoading, error, dismissError } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [appleAvailable, setAppleAvailable] = useState(false);
+
+  useEffect(() => {
+    AppleAuthentication.isAvailableAsync().then(setAppleAvailable);
+  }, []);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -39,8 +45,16 @@ export const LoginScreen: React.FC = () => {
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
-    Alert.alert('Coming Soon', `${provider} login will be available soon.`);
+  const handleAppleSignIn = async () => {
+    try {
+      await signInWithApple();
+    } catch {
+      // Error handled by Redux state
+    }
+  };
+
+  const handleGoogleSignIn = () => {
+    Alert.alert('Coming Soon', 'Google login will be available soon.');
   };
 
   return (
@@ -112,15 +126,18 @@ export const LoginScreen: React.FC = () => {
             {/* Social Login */}
             <Button
               title="Continue with Google"
-              onPress={() => handleSocialLogin('Google')}
+              onPress={handleGoogleSignIn}
               variant="outline"
             />
-            <Button
-              title="Continue with Apple"
-              onPress={() => handleSocialLogin('Apple')}
-              variant="outline"
-              style={styles.appleButton}
-            />
+            {appleAvailable && (
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
+                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
+                cornerRadius={borderRadius.md}
+                style={styles.appleButton}
+                onPress={handleAppleSignIn}
+              />
+            )}
           </View>
 
           {/* Register Link */}
@@ -236,7 +253,8 @@ const styles = StyleSheet.create({
     letterSpacing: fonts.letterSpacing.widest * 11,
   },
   appleButton: {
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    height: 50,
+    width: '100%',
   },
   registerLink: {
     marginTop: spacing['2xl'],

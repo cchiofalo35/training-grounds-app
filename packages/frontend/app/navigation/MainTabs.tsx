@@ -1,96 +1,74 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { colors, fonts } from '@training-grounds/shared';
+import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@training-grounds/shared';
 import { DashboardScreen } from '../screens/dashboard/DashboardScreen';
 import { CheckInScreen } from '../screens/checkin/CheckInScreen';
 import { LeaderboardScreen } from '../screens/leaderboard/LeaderboardScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
+import { JournalScreen } from '../screens/journal/JournalScreen';
 
 export type MainTabParamList = {
   Dashboard: undefined;
   CheckIn: undefined;
   Leaderboard: undefined;
   Profile: undefined;
-  More: undefined;
+  Journal: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-interface TabIconProps {
-  label: string;
-  emoji: string;
-  focused: boolean;
-}
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
-const TabIcon: React.FC<TabIconProps> = ({ label, emoji, focused }) => (
-  <View style={styles.tabIcon}>
-    <Text style={[styles.tabEmoji, focused && styles.tabEmojiActive]}>{emoji}</Text>
-    <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>{label}</Text>
-  </View>
-);
-
-const MoreScreen: React.FC = () => (
-  <View style={styles.moreContainer}>
-    <Text style={styles.moreText}>More features coming soon</Text>
-  </View>
-);
+const TAB_ICONS: Record<string, { active: IoniconsName; inactive: IoniconsName }> = {
+  Dashboard: { active: 'home', inactive: 'home-outline' },
+  CheckIn: { active: 'qr-code', inactive: 'qr-code-outline' },
+  Leaderboard: { active: 'trophy', inactive: 'trophy-outline' },
+  Profile: { active: 'person', inactive: 'person-outline' },
+  Journal: { active: 'journal', inactive: 'journal-outline' },
+};
 
 export const MainTabs: React.FC = () => {
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: styles.tabBar,
-        tabBarShowLabel: false,
         tabBarActiveTintColor: colors.warmAccent,
         tabBarInactiveTintColor: colors.steel,
-      }}
+        tabBarLabelStyle: styles.tabLabel,
+        tabBarIcon: ({ focused, color, size }) => {
+          const icons = TAB_ICONS[route.name] ?? TAB_ICONS.Journal;
+          const iconName = focused ? icons.active : icons.inactive;
+          return <Ionicons name={iconName} size={24} color={color} />;
+        },
+      })}
     >
       <Tab.Screen
         name="Dashboard"
         component={DashboardScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon label="Home" emoji="🏠" focused={focused} />
-          ),
-        }}
+        options={{ tabBarLabel: 'Home' }}
       />
       <Tab.Screen
         name="CheckIn"
         component={CheckInScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon label="Check In" emoji="📷" focused={focused} />
-          ),
-        }}
+        options={{ tabBarLabel: 'Check In' }}
       />
       <Tab.Screen
         name="Leaderboard"
         component={LeaderboardScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon label="Ranks" emoji="🏆" focused={focused} />
-          ),
-        }}
+        options={{ tabBarLabel: 'Ranks' }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon label="Profile" emoji="👤" focused={focused} />
-          ),
-        }}
+        options={{ tabBarLabel: 'Profile' }}
       />
       <Tab.Screen
-        name="More"
-        component={MoreScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabIcon label="More" emoji="⋯" focused={focused} />
-          ),
-        }}
+        name="Journal"
+        component={JournalScreen}
+        options={{ tabBarLabel: 'Journal' }}
       />
     </Tab.Navigator>
   );
@@ -105,36 +83,9 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 20,
   },
-  tabIcon: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  tabEmoji: {
-    fontSize: 22,
-    opacity: 0.5,
-  },
-  tabEmojiActive: {
-    opacity: 1,
-  },
   tabLabel: {
     fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    color: colors.steel,
-    fontWeight: fonts.weight.medium,
-  },
-  tabLabelActive: {
-    color: colors.warmAccent,
-  },
-  moreContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.charcoal,
-  },
-  moreText: {
-    color: colors.steel,
-    fontFamily: 'Inter',
-    fontSize: fonts.size.base,
+    fontSize: 10,
+    fontWeight: '500' as const,
   },
 });

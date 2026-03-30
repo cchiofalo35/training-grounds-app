@@ -48,6 +48,24 @@ export const register = createAsyncThunk(
   },
 );
 
+export const signInWithApple = createAsyncThunk(
+  'auth/signInWithApple',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await authService.signInWithApple();
+      await SecureStore.setItemAsync('auth_token', response.accessToken);
+      return response.user;
+    } catch (error: unknown) {
+      // User cancelled Apple Sign-In — don't show error
+      if (error instanceof Error && error.message.includes('ERR_REQUEST_CANCELED')) {
+        return rejectWithValue(null);
+      }
+      const message = error instanceof Error ? error.message : 'Apple Sign-In failed';
+      return rejectWithValue(message);
+    }
+  },
+);
+
 export const logout = createAsyncThunk('auth/logout', async () => {
   await SecureStore.deleteItemAsync('auth_token');
 });
@@ -105,6 +123,23 @@ const authSlice = createSlice({
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      // Apple Sign-In
+      .addCase(signInWithApple.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(signInWithApple.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload;
+      })
+      .addCase(signInWithApple.rejected, (state, action) => {
+        state.isLoading = false;
+        // Don't show error for user cancellation
+        if (action.payload !== null) {
+          state.error = action.payload as string;
+        }
       })
       // Logout
       .addCase(logout.fulfilled, (state) => {

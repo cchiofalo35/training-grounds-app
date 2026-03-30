@@ -8,16 +8,25 @@ import {
   Pressable,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
 import type { UserBadge } from '@training-grounds/shared';
 import type { RootState, AppDispatch } from '../../redux/store';
 import { fetchStats } from '../../redux/slices/attendanceSlice';
-import { fetchStreak } from '../../redux/slices/gamificationSlice';
+import { fetchStreak, fetchBadges } from '../../redux/slices/gamificationSlice';
 import { useAuth } from '../../hooks/useAuth';
 import { Card } from '../../components/common/Card';
 import { BeltDisplay } from '../../components/common/BeltDisplay';
 import { StreakBadge } from '../../components/common/StreakBadge';
 import { Button } from '../../components/common/Button';
+
+const BADGE_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
+  attendance: 'fitness-outline',
+  discipline: 'school-outline',
+  competition: 'trophy-outline',
+  social: 'people-outline',
+  secret: 'eye-outline',
+};
 
 const formatJoinDate = (dateStr: string): string => {
   const date = new Date(dateStr);
@@ -28,40 +37,38 @@ export const ProfileScreen: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { user, logout } = useAuth();
   const { stats } = useSelector((state: RootState) => state.attendance);
-  const { streak } = useSelector((state: RootState) => state.gamification);
+  const { streak, badges } = useSelector((state: RootState) => state.gamification);
 
   useEffect(() => {
     dispatch(fetchStats());
     dispatch(fetchStreak());
+    dispatch(fetchBadges());
   }, [dispatch]);
 
   if (!user) return null;
 
-  const statCards = [
+  const statCards: { label: string; value: string; icon: React.ComponentProps<typeof Ionicons>['name'] }[] = [
     {
       label: 'Total XP',
       value: user.totalXp.toLocaleString(),
-      icon: '⚡',
+      icon: 'flash',
     },
     {
       label: 'Current Streak',
       value: `${streak?.currentStreak ?? user.currentStreak}`,
-      icon: '🔥',
+      icon: 'flame',
     },
     {
       label: 'Classes This Month',
       value: `${stats.classesThisMonth}`,
-      icon: '📅',
+      icon: 'calendar',
     },
     {
       label: 'Member Since',
       value: formatJoinDate(user.joinedAt),
-      icon: '🏛️',
+      icon: 'time',
     },
   ];
-
-  // Placeholder badges
-  const recentBadges: Pick<UserBadge, 'id' | 'earnedAt' | 'badge'>[] = [];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -88,7 +95,7 @@ export const ProfileScreen: React.FC = () => {
         <View style={styles.statsGrid}>
           {statCards.map((stat) => (
             <Card key={stat.label} style={styles.statCard}>
-              <Text style={styles.statIcon}>{stat.icon}</Text>
+              <Ionicons name={stat.icon} size={24} color={colors.warmAccent} />
               <Text style={styles.statValue}>{stat.value}</Text>
               <Text style={styles.statLabel}>{stat.label}</Text>
             </Card>
@@ -121,10 +128,10 @@ export const ProfileScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>RECENT BADGES</Text>
         </View>
 
-        {recentBadges.length === 0 ? (
+        {badges.length === 0 ? (
           <Card>
             <View style={styles.emptyBadges}>
-              <Text style={styles.emptyIcon}>🏅</Text>
+              <Ionicons name="ribbon-outline" size={32} color={colors.steel} />
               <Text style={styles.emptyText}>
                 Keep training to earn your first badge!
               </Text>
@@ -136,8 +143,15 @@ export const ProfileScreen: React.FC = () => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.badgeList}
           >
-            {recentBadges.map((ub) => (
+            {badges.map((ub) => (
               <Card key={ub.id} style={styles.badgeCard}>
+                <View style={styles.badgeIconContainer}>
+                  <Ionicons
+                    name={BADGE_ICONS[ub.badge.category] ?? 'ribbon'}
+                    size={28}
+                    color={colors.warmAccent}
+                  />
+                </View>
                 <Text style={styles.badgeName}>{ub.badge.name}</Text>
                 <Text style={styles.badgeDescription}>
                   {ub.badge.description}
@@ -223,9 +237,6 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     paddingVertical: spacing.lg,
   },
-  statIcon: {
-    fontSize: 24,
-  },
   statValue: {
     fontFamily: 'BebasNeue',
     fontSize: fonts.size.xl,
@@ -274,9 +285,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingVertical: spacing.md,
   },
-  emptyIcon: {
-    fontSize: 32,
-  },
   emptyText: {
     fontFamily: 'Inter',
     fontSize: fonts.size.sm,
@@ -286,6 +294,15 @@ const styles = StyleSheet.create({
   badgeList: {
     gap: spacing.md,
     paddingBottom: spacing.sm,
+  },
+  badgeIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.full,
+    backgroundColor: 'rgba(201, 168, 124, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
   },
   badgeCard: {
     width: 140,

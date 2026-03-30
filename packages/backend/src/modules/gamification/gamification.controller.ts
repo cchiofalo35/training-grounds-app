@@ -32,6 +32,12 @@ export class GamificationController {
     return { success: true, data: streak };
   }
 
+  @Get('badges')
+  async getBadges(@Request() req: AuthenticatedRequest) {
+    const badges = await this.gamificationService.getUserBadges(req.user.id);
+    return { success: true, data: badges };
+  }
+
   @Get('leaderboard')
   async getLeaderboard(@Query() pagination: PaginationDto) {
     const { entries, total } =
