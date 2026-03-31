@@ -1,0 +1,8 @@
+packages/frontend
+ios
+android
+*.xcarchive
+build
+dist
+.expo
+preview
