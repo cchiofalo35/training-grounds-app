@@ -2,12 +2,15 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   SafeAreaView,
   FlatList,
   Pressable,
   RefreshControl,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
@@ -308,6 +311,11 @@ export const CommunityScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={90}
+      >
       {/* Chat Header */}
       <View style={styles.chatHeader}>
         <Pressable onPress={goBack} style={styles.backButton}>
@@ -467,6 +475,7 @@ export const CommunityScreen: React.FC = () => {
           </Pressable>
         </View>
       )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -597,6 +606,7 @@ const styles = StyleSheet.create({
   },
   chatHeaderEmoji: {
     fontSize: 20,
+    fontFamily: 'System',
   },
   chatHeaderTitle: {
     fontSize: 18,

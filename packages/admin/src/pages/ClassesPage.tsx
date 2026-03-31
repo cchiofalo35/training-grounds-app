@@ -138,7 +138,7 @@ export function ClassesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-heading text-3xl text-off-white tracking-wider">Class Schedule</h1>
+        <h1 className="font-heading text-2xl sm:text-3xl text-off-white tracking-wider">Class Schedule</h1>
         <button
           onClick={openCreate}
           className="flex items-center gap-2 bg-warm-accent text-charcoal px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-warm-accent/90 transition-colors"
@@ -156,7 +156,7 @@ export function ClassesPage() {
       )}
 
       {loading ? (
-        <div className="grid grid-cols-7 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
           {DAYS.map((day) => (
             <div key={day} className="space-y-2">
               <div className="text-xs text-steel uppercase tracking-widest text-center py-2">{day}</div>
@@ -165,11 +165,11 @@ export function ClassesPage() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-7 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
           {DAYS.map((day, dayIndex) => (
             <div key={day} className="space-y-2">
               <div className="text-xs text-steel uppercase tracking-widest text-center py-2 border-b border-white/5">{day}</div>
-              <div className="space-y-2 min-h-[200px]">
+              <div className="space-y-2 sm:min-h-[200px]">
                 {classesByDay[dayIndex].length === 0 ? (
                   <div className="text-xs text-steel/50 text-center py-8">No classes</div>
                 ) : (
