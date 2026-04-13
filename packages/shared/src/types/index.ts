@@ -3,6 +3,54 @@
  * Used by both backend and frontend packages
  */
 
+// ==================== Gym & Tenant ====================
+
+export type GymPlan = 'starter' | 'pro' | 'enterprise';
+
+export type GymMemberRole = 'member' | 'coach' | 'admin' | 'owner';
+
+export interface Gym {
+  id: string;
+  name: string;
+  slug: string;
+  ownerId: string;
+  logoUrl?: string;
+  primaryColor: string;
+  secondaryColor: string;
+  headingFont: string;
+  bodyFont: string;
+  timezone: string;
+  currency: string;
+  streakFreezeEnabled: boolean;
+  maxStreakFreezesPerMonth: number;
+  referralProgramEnabled: boolean;
+  communityEnabled: boolean;
+  plan: GymPlan;
+  trialEndsAt?: string;
+  address?: string;
+  city?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GymMembership {
+  id: string;
+  gymId: string;
+  userId: string;
+  role: GymMemberRole;
+  joinedAt: string;
+  isActive: boolean;
+}
+
+export interface GymTheme {
+  primaryColor: string;
+  secondaryColor: string;
+  headingFont: string;
+  bodyFont: string;
+  logoUrl?: string;
+}
+
 // ==================== User & Auth ====================
 
 export type UserRole = 'member' | 'coach' | 'admin';

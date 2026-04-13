@@ -4,15 +4,25 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
+  Unique,
 } from 'typeorm';
 import type { Discipline } from '@training-grounds/shared';
+import { GymEntity } from './gym.entity';
 
 @Entity('channels')
+@Unique(['gymId', 'name'])
 export class ChannelEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: 'varchar', length: 100, unique: true })
+  @Index()
+  @Column({ type: 'uuid', nullable: true })
+  gymId!: string | null;
+
+  @Column({ type: 'varchar', length: 100 })
   name!: string;
 
   @Column({ type: 'text', nullable: true })
@@ -44,4 +54,8 @@ export class ChannelEntity {
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
+
+  @ManyToOne(() => GymEntity, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'gymId' })
+  gym!: GymEntity | null;
 }

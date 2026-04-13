@@ -10,11 +10,16 @@ import {
 } from 'typeorm';
 import type { Discipline } from '@training-grounds/shared';
 import { UserEntity } from './user.entity';
+import { GymEntity } from './gym.entity';
 
 @Entity('class_schedules')
 export class ClassScheduleEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Index()
+  @Column({ type: 'uuid', nullable: true })
+  gymId!: string | null;
 
   @Column({ type: 'varchar', length: 255 })
   name!: string;
@@ -52,6 +57,10 @@ export class ClassScheduleEntity {
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
+
+  @ManyToOne(() => GymEntity, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'gymId' })
+  gym!: GymEntity | null;
 
   @ManyToOne(() => UserEntity, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'instructorId' })

@@ -9,11 +9,16 @@ import {
 } from 'typeorm';
 import type { BadgeCategory } from '@training-grounds/shared';
 import { UserEntity } from './user.entity';
+import { GymEntity } from './gym.entity';
 
 @Entity('badges')
 export class BadgeEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Index()
+  @Column({ type: 'uuid', nullable: true })
+  gymId!: string | null;
 
   @Column({ type: 'varchar', length: 255 })
   name!: string;
@@ -35,6 +40,10 @@ export class BadgeEntity {
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
+
+  @ManyToOne(() => GymEntity, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'gymId' })
+  gym!: GymEntity | null;
 }
 
 @Entity('user_badges')
@@ -42,6 +51,10 @@ export class BadgeEntity {
 export class UserBadgeEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Index()
+  @Column({ type: 'uuid', nullable: true })
+  gymId!: string | null;
 
   @Index()
   @Column({ type: 'uuid' })
@@ -58,6 +71,10 @@ export class UserBadgeEntity {
   })
   @JoinColumn({ name: 'userId' })
   user!: UserEntity;
+
+  @ManyToOne(() => GymEntity, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'gymId' })
+  gym!: GymEntity | null;
 
   @ManyToOne(() => BadgeEntity, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'badgeId' })

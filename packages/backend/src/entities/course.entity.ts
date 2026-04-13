@@ -5,13 +5,21 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
+  Index,
 } from 'typeorm';
 import type { Discipline } from '@training-grounds/shared';
+import { GymEntity } from './gym.entity';
 
 @Entity('courses')
 export class CourseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Index()
+  @Column({ type: 'uuid', nullable: true })
+  gymId!: string | null;
 
   @Column({ type: 'varchar', length: 255 })
   name!: string;
@@ -34,16 +42,22 @@ export class CourseEntity {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
 
+  @ManyToOne(() => GymEntity, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'gymId' })
+  gym!: GymEntity | null;
+
   @OneToMany(() => CourseModuleEntity, (m) => m.course)
   modules!: CourseModuleEntity[];
 }
-
-import { ManyToOne, JoinColumn, Index } from 'typeorm';
 
 @Entity('course_modules')
 export class CourseModuleEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Index()
+  @Column({ type: 'uuid', nullable: true })
+  gymId!: string | null;
 
   @Index()
   @Column({ type: 'uuid' })
@@ -63,6 +77,10 @@ export class CourseModuleEntity {
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
+
+  @ManyToOne(() => GymEntity, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'gymId' })
+  gym!: GymEntity | null;
 
   @ManyToOne(() => CourseEntity, (c) => c.modules, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'courseId' })
