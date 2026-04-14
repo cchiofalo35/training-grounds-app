@@ -3,6 +3,54 @@
  * Used by both backend and frontend packages
  */
 
+// ==================== Gym & Tenant ====================
+
+export type GymPlan = 'starter' | 'pro' | 'enterprise';
+
+export type GymMemberRole = 'member' | 'coach' | 'admin' | 'owner';
+
+export interface Gym {
+  id: string;
+  name: string;
+  slug: string;
+  ownerId: string;
+  logoUrl?: string;
+  primaryColor: string;
+  secondaryColor: string;
+  headingFont: string;
+  bodyFont: string;
+  timezone: string;
+  currency: string;
+  streakFreezeEnabled: boolean;
+  maxStreakFreezesPerMonth: number;
+  referralProgramEnabled: boolean;
+  communityEnabled: boolean;
+  plan: GymPlan;
+  trialEndsAt?: string;
+  address?: string;
+  city?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GymMembership {
+  id: string;
+  gymId: string;
+  userId: string;
+  role: GymMemberRole;
+  joinedAt: string;
+  isActive: boolean;
+}
+
+export interface GymTheme {
+  primaryColor: string;
+  secondaryColor: string;
+  headingFont: string;
+  bodyFont: string;
+  logoUrl?: string;
+}
+
 // ==================== User & Auth ====================
 
 export type UserRole = 'member' | 'coach' | 'admin';
@@ -79,6 +127,8 @@ export interface UserBadge {
   earnedAt: string;
 }
 
+export type LeaderboardPeriod = 'weekly' | 'monthly' | 'all-time';
+
 export interface LeaderboardEntry {
   rank: number;
   userId: string;
@@ -88,6 +138,35 @@ export interface LeaderboardEntry {
   xp: number;
   league: LeagueType;
   rankChange: number; // positive = moved up, negative = moved down
+}
+
+export interface BadgeCatalogEntry extends Badge {
+  earned: boolean;
+  earnedAt: string | null;
+}
+
+export interface QuestWithProgress {
+  quest: Quest;
+  progress: number;
+  completedAt: string | null;
+}
+
+export interface XpGuideAction {
+  action: string;
+  xp: number;
+  description: string;
+}
+
+export interface StreakMilestone {
+  days: number;
+  xp: number;
+  freezes: number;
+}
+
+export interface XpGuide {
+  actions: XpGuideAction[];
+  streakMultipliers: Array<{ streak: number; multiplier: number }>;
+  streakMilestones: StreakMilestone[];
 }
 
 export interface StreakInfo {

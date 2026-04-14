@@ -9,6 +9,7 @@ import { JournalModule } from './modules/journal/journal.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { CommunityModule } from './modules/community/community.module';
+import { GymModule } from './modules/gym/gym.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { CommunityModule } from './modules/community/community.module';
       },
     }),
 
+    GymModule,
     AuthModule,
     UserModule,
     AttendanceModule,

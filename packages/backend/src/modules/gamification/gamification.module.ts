@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
 import { UserEntity } from '../../entities/user.entity';
 import { BadgeEntity, UserBadgeEntity } from '../../entities/badge.entity';
+import { QuestEntity, UserQuestEntity } from '../../entities/quest.entity';
 import { AttendanceRecordEntity } from '../../entities/attendance.entity';
 import { NotificationModule } from '../notification/notification.module';
 import { GamificationController } from './gamification.controller';
@@ -14,6 +15,8 @@ import { GamificationService } from './gamification.service';
       UserEntity,
       BadgeEntity,
       UserBadgeEntity,
+      QuestEntity,
+      UserQuestEntity,
       AttendanceRecordEntity,
     ]),
     PassportModule,

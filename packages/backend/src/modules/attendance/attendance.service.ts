@@ -62,8 +62,8 @@ export class AttendanceService {
       throw new BadRequestException('Already checked in to this class');
     }
 
-    // Calculate XP earned for this check-in
-    const xpEarned = this.calculateCheckinXp(dto.intensityRating);
+    // Calculate XP earned for this check-in (with streak multiplier)
+    const xpEarned = this.calculateCheckinXp(dto.intensityRating, user.currentStreak);
 
     const record = this.attendanceRepo.create({
       userId,
@@ -190,7 +190,7 @@ export class AttendanceService {
       throw new NotFoundException('Member not found with that email');
     }
 
-    const xpEarned = this.calculateCheckinXp(dto.intensityRating);
+    const xpEarned = this.calculateCheckinXp(dto.intensityRating, member.currentStreak);
 
     const record = this.attendanceRepo.create({
       userId: member.id,
@@ -232,7 +232,7 @@ export class AttendanceService {
     return qb.orderBy('a.checkedInAt', 'ASC').getMany();
   }
 
-  private calculateCheckinXp(intensity?: TrainingIntensity): number {
+  private calculateCheckinXp(intensity?: TrainingIntensity, currentStreak?: number): number {
     const baseXp = 50;
     const intensityMultiplier: Record<TrainingIntensity, number> = {
       light: 1.0,
@@ -241,7 +241,16 @@ export class AttendanceService {
       'all-out': 2.0,
     };
 
-    const multiplier = intensity ? intensityMultiplier[intensity] : 1.0;
-    return Math.round(baseXp * multiplier);
+    // Streak-based XP multiplier per architecture spec
+    let streakMultiplier = 1.0;
+    if (currentStreak !== undefined) {
+      if (currentStreak >= 100) streakMultiplier = 2.0;
+      else if (currentStreak >= 60) streakMultiplier = 1.75;
+      else if (currentStreak >= 30) streakMultiplier = 1.5;
+      else if (currentStreak >= 7) streakMultiplier = 1.25;
+    }
+
+    const intMult = intensity ? intensityMultiplier[intensity] : 1.0;
+    return Math.round(baseXp * intMult * streakMultiplier);
   }
 }

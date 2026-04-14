@@ -10,12 +10,17 @@ import {
 } from 'typeorm';
 import { UserEntity } from './user.entity';
 import { ChannelEntity } from './channel.entity';
+import { GymEntity } from './gym.entity';
 
 @Index(['channelId', 'createdAt'])
 @Entity('channel_messages')
 export class ChannelMessageEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Index()
+  @Column({ type: 'uuid', nullable: true })
+  gymId!: string | null;
 
   @Index()
   @Column({ type: 'uuid' })
@@ -51,6 +56,10 @@ export class ChannelMessageEntity {
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt!: Date;
+
+  @ManyToOne(() => GymEntity, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'gymId' })
+  gym!: GymEntity | null;
 
   @ManyToOne(() => ChannelEntity, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channelId' })
