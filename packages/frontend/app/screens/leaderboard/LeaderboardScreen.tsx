@@ -12,11 +12,12 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
-import type { LeaderboardEntry, LeagueType } from '@training-grounds/shared';
+import type { LeaderboardEntry, LeagueType, LeaderboardPeriod } from '@training-grounds/shared';
 import type { AppDispatch, RootState } from '../../redux/store';
 import {
   fetchLeaderboard,
   setSelectedLeague,
+  setSelectedPeriod,
 } from '../../redux/slices/gamificationSlice';
 import { Card } from '../../components/common/Card';
 import { BeltDisplay } from '../../components/common/BeltDisplay';
@@ -30,6 +31,12 @@ const LEAGUE_TABS: { key: LeagueType; label: string; color: string }[] = [
   { key: 'black-belt-elite', label: 'Black Belt', color: colors.league.blackBelt },
 ];
 
+const PERIOD_TABS: { key: LeaderboardPeriod; label: string }[] = [
+  { key: 'weekly', label: 'This Week' },
+  { key: 'monthly', label: 'This Month' },
+  { key: 'all-time', label: 'All Time' },
+];
+
 const RANK_COLORS: Record<number, string> = {
   1: '#FFD700',
   2: '#C0C0C0',
@@ -38,17 +45,21 @@ const RANK_COLORS: Record<number, string> = {
 
 export const LeaderboardScreen: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { leaderboard, selectedLeague, isLoadingLeaderboard } = useSelector(
+  const { leaderboard, selectedLeague, selectedPeriod, isLoadingLeaderboard } = useSelector(
     (state: RootState) => state.gamification,
   );
   const currentUserId = useSelector((state: RootState) => state.auth.user?.id);
 
   useEffect(() => {
-    dispatch(fetchLeaderboard(selectedLeague));
-  }, [dispatch, selectedLeague]);
+    dispatch(fetchLeaderboard({ period: selectedPeriod, league: selectedLeague }));
+  }, [dispatch, selectedLeague, selectedPeriod]);
 
   const handleLeagueChange = (league: LeagueType) => {
     dispatch(setSelectedLeague(league));
+  };
+
+  const handlePeriodChange = (period: LeaderboardPeriod) => {
+    dispatch(setSelectedPeriod(period));
   };
 
   const renderEntry = ({ item }: { item: LeaderboardEntry }) => {
@@ -136,6 +147,29 @@ export const LeaderboardScreen: React.FC = () => {
         <Text style={styles.title}>LEADERBOARD</Text>
       </View>
 
+      {/* Time Period Tabs */}
+      <View style={styles.periodContainer}>
+        {PERIOD_TABS.map((tab) => (
+          <Pressable
+            key={tab.key}
+            style={[
+              styles.periodTab,
+              selectedPeriod === tab.key && styles.periodTabActive,
+            ]}
+            onPress={() => handlePeriodChange(tab.key)}
+          >
+            <Text
+              style={[
+                styles.periodText,
+                selectedPeriod === tab.key && styles.periodTextActive,
+              ]}
+            >
+              {tab.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
       {/* League Tabs */}
       <ScrollView
         horizontal
@@ -212,6 +246,36 @@ const styles = StyleSheet.create({
     color: colors.offWhite,
     letterSpacing: fonts.letterSpacing.wide * 32,
   },
+  periodContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.base,
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  periodTab: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.darkGrey,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  periodTabActive: {
+    backgroundColor: 'rgba(201, 168, 124, 0.15)',
+    borderColor: colors.warmAccent,
+  },
+  periodText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.semibold,
+    color: colors.steel,
+    textTransform: 'uppercase',
+    letterSpacing: fonts.letterSpacing.wider * 11,
+  },
+  periodTextActive: {
+    color: colors.warmAccent,
+  },
   tabsContainer: {
     paddingHorizontal: spacing.base,
     gap: spacing.sm,
@@ -275,9 +339,6 @@ const styles = StyleSheet.create({
   rankContainer: {
     width: 36,
     alignItems: 'center',
-  },
-  medal: {
-    fontSize: 22,
   },
   rankNumber: {
     fontFamily: 'BebasNeue',
@@ -343,9 +404,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing['3xl'],
     gap: spacing.md,
-  },
-  emptyIcon: {
-    fontSize: 48,
   },
   emptyText: {
     fontFamily: 'Inter',

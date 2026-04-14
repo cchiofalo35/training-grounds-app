@@ -4,11 +4,13 @@ import { colors } from '@training-grounds/shared';
 import { MainTabs } from './MainTabs';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { JournalScreen } from '../screens/journal/JournalScreen';
+import { RewardsScreen } from '../screens/rewards/RewardsScreen';
 
 export type AppStackParamList = {
   HomeTabs: undefined;
   Profile: undefined;
   Journal: undefined;
+  Rewards: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -49,10 +51,25 @@ export const AppStack: React.FC = () => {
           headerTitleStyle: {
             fontFamily: 'BebasNeue',
             fontSize: 20,
-            letterSpacing: 1.5,
           },
           headerShadowVisible: false,
           animation: 'slide_from_bottom',
+        }}
+      />
+      <Stack.Screen
+        name="Rewards"
+        component={RewardsScreen}
+        options={{
+          headerShown: true,
+          headerTitle: 'Rewards & Badges',
+          headerStyle: { backgroundColor: colors.charcoal },
+          headerTintColor: colors.offWhite,
+          headerTitleStyle: {
+            fontFamily: 'BebasNeue',
+            fontSize: 20,
+          },
+          headerShadowVisible: false,
+          animation: 'slide_from_right',
         }}
       />
     </Stack.Navigator>

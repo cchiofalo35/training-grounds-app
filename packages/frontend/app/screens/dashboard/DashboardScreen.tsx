@@ -18,7 +18,7 @@ import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
 import type { AttendanceRecord, Discipline } from '@training-grounds/shared';
 import type { RootState, AppDispatch } from '../../redux/store';
 import { fetchHistory } from '../../redux/slices/attendanceSlice';
-import { fetchStreak } from '../../redux/slices/gamificationSlice';
+import { fetchStreak, fetchQuests } from '../../redux/slices/gamificationSlice';
 import { Card } from '../../components/common/Card';
 import { StreakBadge } from '../../components/common/StreakBadge';
 import { XpProgressBar } from '../../components/common/XpProgressBar';
@@ -183,7 +183,7 @@ export const DashboardScreen: React.FC = () => {
   const { records, isLoading: attendanceLoading } = useSelector(
     (state: RootState) => state.attendance,
   );
-  const { streak, isLoadingStreak } = useSelector(
+  const { streak, isLoadingStreak, quests: apiQuests } = useSelector(
     (state: RootState) => state.gamification,
   );
 
@@ -192,11 +192,16 @@ export const DashboardScreen: React.FC = () => {
   useEffect(() => {
     dispatch(fetchHistory());
     dispatch(fetchStreak());
+    dispatch(fetchQuests());
   }, [dispatch]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([dispatch(fetchHistory()), dispatch(fetchStreak())]);
+    await Promise.all([
+      dispatch(fetchHistory()),
+      dispatch(fetchStreak()),
+      dispatch(fetchQuests()),
+    ]);
     setRefreshing(false);
   };
 
@@ -223,10 +228,23 @@ export const DashboardScreen: React.FC = () => {
     return { count: weekRecords.length, disciplines };
   }, [records]);
 
-  const weeklyQuests = useMemo(
-    () => buildWeeklyQuests(weeklyData.count, weeklyData.disciplines, false),
-    [weeklyData],
-  );
+  // Use API quests when available, fall back to local calculation
+  const weeklyQuests = useMemo(() => {
+    if (apiQuests.length > 0) {
+      return apiQuests.map((q) => {
+        const threshold = (q.quest.criteriaJson['threshold'] as number) ?? 1;
+        return {
+          title: q.quest.name,
+          current: Math.min(q.progress, threshold),
+          target: threshold,
+          xpReward: q.quest.xpReward,
+          icon: q.quest.type === 'weekly' ? 'flame' as const : 'trophy' as const,
+          iconColor: q.quest.type === 'weekly' ? '#FF9F43' : '#54A0FF',
+        };
+      });
+    }
+    return buildWeeklyQuests(weeklyData.count, weeklyData.disciplines, false);
+  }, [apiQuests, weeklyData]);
   const completedQuests = weeklyQuests.filter((q) => q.current >= q.target).length;
 
   // Heatmap

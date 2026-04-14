@@ -127,6 +127,8 @@ export interface UserBadge {
   earnedAt: string;
 }
 
+export type LeaderboardPeriod = 'weekly' | 'monthly' | 'all-time';
+
 export interface LeaderboardEntry {
   rank: number;
   userId: string;
@@ -136,6 +138,35 @@ export interface LeaderboardEntry {
   xp: number;
   league: LeagueType;
   rankChange: number; // positive = moved up, negative = moved down
+}
+
+export interface BadgeCatalogEntry extends Badge {
+  earned: boolean;
+  earnedAt: string | null;
+}
+
+export interface QuestWithProgress {
+  quest: Quest;
+  progress: number;
+  completedAt: string | null;
+}
+
+export interface XpGuideAction {
+  action: string;
+  xp: number;
+  description: string;
+}
+
+export interface StreakMilestone {
+  days: number;
+  xp: number;
+  freezes: number;
+}
+
+export interface XpGuide {
+  actions: XpGuideAction[];
+  streakMultipliers: Array<{ streak: number; multiplier: number }>;
+  streakMilestones: StreakMilestone[];
 }
 
 export interface StreakInfo {
