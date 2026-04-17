@@ -45,6 +45,7 @@ export class AttendanceService {
   ) {}
 
   async checkin(
+    gymId: string,
     userId: string,
     dto: CheckinDto,
   ): Promise<AttendanceRecordEntity> {
@@ -55,17 +56,18 @@ export class AttendanceService {
 
     // Prevent duplicate check-ins for the same class
     const existing = await this.attendanceRepo.findOne({
-      where: { userId, classId: dto.classId },
+      where: { gymId, userId, classId: dto.classId },
     });
 
     if (existing) {
       throw new BadRequestException('Already checked in to this class');
     }
 
-    // Calculate XP earned for this check-in
-    const xpEarned = this.calculateCheckinXp(dto.intensityRating);
+    // Calculate XP earned for this check-in (with streak multiplier)
+    const xpEarned = this.calculateCheckinXp(dto.intensityRating, user.currentStreak);
 
     const record = this.attendanceRepo.create({
+      gymId,
       userId,
       classId: dto.classId,
       className: dto.className,
@@ -77,19 +79,20 @@ export class AttendanceService {
     const savedRecord = await this.attendanceRepo.save(record);
 
     // Award XP and update streak via gamification service
-    await this.gamificationService.awardXp(userId, xpEarned, 'checkin');
-    await this.gamificationService.updateStreak(userId);
+    await this.gamificationService.awardXp(gymId, userId, xpEarned, 'checkin');
+    await this.gamificationService.updateStreak(gymId, userId);
 
     return savedRecord;
   }
 
   async getHistory(
+    gymId: string,
     userId: string,
     page: number,
     perPage: number,
   ): Promise<{ records: AttendanceRecordEntity[]; total: number }> {
     const [records, total] = await this.attendanceRepo.findAndCount({
-      where: { userId },
+      where: { gymId, userId },
       order: { checkedInAt: 'DESC' },
       skip: (page - 1) * perPage,
       take: perPage,
@@ -98,9 +101,9 @@ export class AttendanceService {
     return { records, total };
   }
 
-  async getStats(userId: string): Promise<AttendanceStats> {
+  async getStats(gymId: string, userId: string): Promise<AttendanceStats> {
     const totalClasses = await this.attendanceRepo.count({
-      where: { userId },
+      where: { gymId, userId },
     });
 
     const now = new Date();
@@ -114,6 +117,7 @@ export class AttendanceService {
 
     const thisWeek = await this.attendanceRepo.count({
       where: {
+        gymId,
         userId,
         checkedInAt: Between(startOfWeek, now),
       },
@@ -124,6 +128,7 @@ export class AttendanceService {
 
     const thisMonth = await this.attendanceRepo.count({
       where: {
+        gymId,
         userId,
         checkedInAt: Between(startOfMonth, now),
       },
@@ -134,7 +139,8 @@ export class AttendanceService {
       .createQueryBuilder('a')
       .select('a.discipline', 'discipline')
       .addSelect('COUNT(*)', 'count')
-      .where('a.userId = :userId', { userId })
+      .where('a.gymId = :gymId', { gymId })
+      .andWhere('a.userId = :userId', { userId })
       .groupBy('a.discipline')
       .getRawMany<{ discipline: string; count: string }>();
 
@@ -169,18 +175,21 @@ export class AttendanceService {
 
   // ==================== Coach Check-in ====================
 
-  async searchMembers(query: string): Promise<UserEntity[]> {
-    return this.userRepo.find({
-      where: [
-        { name: ILike(`%${query}%`) },
-        { email: ILike(`%${query}%`) },
-      ],
-      take: 10,
-      order: { name: 'ASC' },
-    });
+  async searchMembers(gymId: string, query: string): Promise<UserEntity[]> {
+    // Search members who belong to this gym via gym_memberships
+    return this.userRepo
+      .createQueryBuilder('u')
+      .innerJoin('gym_memberships', 'gm', 'gm.userId = u.id')
+      .where('gm.gymId = :gymId', { gymId })
+      .andWhere('gm.isActive = true')
+      .andWhere('(u.name ILIKE :q OR u.email ILIKE :q)', { q: `%${query}%` })
+      .take(10)
+      .orderBy('u.name', 'ASC')
+      .getMany();
   }
 
   async coachCheckin(
+    gymId: string,
     coachUserId: string,
     memberEmail: string,
     dto: CoachCheckinDto,
@@ -190,9 +199,10 @@ export class AttendanceService {
       throw new NotFoundException('Member not found with that email');
     }
 
-    const xpEarned = this.calculateCheckinXp(dto.intensityRating);
+    const xpEarned = this.calculateCheckinXp(dto.intensityRating, member.currentStreak);
 
     const record = this.attendanceRepo.create({
+      gymId,
       userId: member.id,
       classId: dto.classId,
       className: dto.className,
@@ -206,20 +216,22 @@ export class AttendanceService {
     const savedRecord = await this.attendanceRepo.save(record);
 
     // Award XP and update streak
-    await this.gamificationService.awardXp(member.id, xpEarned, 'checkin');
-    await this.gamificationService.updateStreak(member.id);
+    await this.gamificationService.awardXp(gymId, member.id, xpEarned, 'checkin');
+    await this.gamificationService.updateStreak(gymId, member.id);
 
     return savedRecord;
   }
 
   async getClassRoster(
+    gymId: string,
     classScheduleId: string,
     date?: string,
   ): Promise<AttendanceRecordEntity[]> {
     const qb = this.attendanceRepo
       .createQueryBuilder('a')
       .leftJoinAndSelect('a.user', 'user')
-      .where('a.classScheduleId = :classScheduleId', { classScheduleId });
+      .where('a.gymId = :gymId', { gymId })
+      .andWhere('a.classScheduleId = :classScheduleId', { classScheduleId });
 
     if (date) {
       qb.andWhere("DATE(a.checkedInAt) = :date", { date });
@@ -232,7 +244,7 @@ export class AttendanceService {
     return qb.orderBy('a.checkedInAt', 'ASC').getMany();
   }
 
-  private calculateCheckinXp(intensity?: TrainingIntensity): number {
+  private calculateCheckinXp(intensity?: TrainingIntensity, currentStreak?: number): number {
     const baseXp = 50;
     const intensityMultiplier: Record<TrainingIntensity, number> = {
       light: 1.0,
@@ -241,7 +253,16 @@ export class AttendanceService {
       'all-out': 2.0,
     };
 
-    const multiplier = intensity ? intensityMultiplier[intensity] : 1.0;
-    return Math.round(baseXp * multiplier);
+    // Streak-based XP multiplier per architecture spec
+    let streakMultiplier = 1.0;
+    if (currentStreak !== undefined) {
+      if (currentStreak >= 100) streakMultiplier = 2.0;
+      else if (currentStreak >= 60) streakMultiplier = 1.75;
+      else if (currentStreak >= 30) streakMultiplier = 1.5;
+      else if (currentStreak >= 7) streakMultiplier = 1.25;
+    }
+
+    const intMult = intensity ? intensityMultiplier[intensity] : 1.0;
+    return Math.round(baseXp * intMult * streakMultiplier);
   }
 }

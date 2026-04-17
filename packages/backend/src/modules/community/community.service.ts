@@ -19,32 +19,32 @@ export class CommunityService {
 
   // ===== Channels =====
 
-  async getChannels(): Promise<ChannelEntity[]> {
+  async getChannels(gymId: string): Promise<ChannelEntity[]> {
     return this.channelRepo.find({
-      where: { isArchived: false },
+      where: { gymId, isArchived: false },
       order: { isPinned: 'DESC', sortOrder: 'ASC', name: 'ASC' },
     });
   }
 
-  async getChannel(id: string): Promise<ChannelEntity> {
-    const channel = await this.channelRepo.findOne({ where: { id } });
+  async getChannel(gymId: string, id: string): Promise<ChannelEntity> {
+    const channel = await this.channelRepo.findOne({ where: { id, gymId } });
     if (!channel) throw new NotFoundException('Channel not found');
     return channel;
   }
 
-  async createChannel(dto: Partial<ChannelEntity>): Promise<ChannelEntity> {
-    const entity = this.channelRepo.create(dto);
+  async createChannel(gymId: string, dto: Partial<ChannelEntity>): Promise<ChannelEntity> {
+    const entity = this.channelRepo.create({ ...dto, gymId });
     return this.channelRepo.save(entity);
   }
 
-  async updateChannel(id: string, dto: Partial<ChannelEntity>): Promise<ChannelEntity> {
-    const entity = await this.getChannel(id);
+  async updateChannel(gymId: string, id: string, dto: Partial<ChannelEntity>): Promise<ChannelEntity> {
+    const entity = await this.getChannel(gymId, id);
     Object.assign(entity, dto);
     return this.channelRepo.save(entity);
   }
 
-  async archiveChannel(id: string): Promise<void> {
-    const entity = await this.getChannel(id);
+  async archiveChannel(gymId: string, id: string): Promise<void> {
+    const entity = await this.getChannel(gymId, id);
     entity.isArchived = true;
     await this.channelRepo.save(entity);
   }
@@ -52,14 +52,19 @@ export class CommunityService {
   // ===== Messages =====
 
   async getMessages(
+    gymId: string,
     channelId: string,
     cursor?: string,
     limit = 50,
   ): Promise<{ messages: any[]; hasMore: boolean }> {
+    // Verify channel belongs to this gym
+    await this.getChannel(gymId, channelId);
+
     const qb = this.messageRepo
       .createQueryBuilder('m')
       .leftJoinAndSelect('m.user', 'u')
       .where('m.channelId = :channelId', { channelId })
+      .andWhere('m.gymId = :gymId', { gymId })
       .andWhere('m.isDeleted = false')
       .andWhere('m.parentId IS NULL') // Only top-level messages
       .orderBy('m.createdAt', 'DESC')
@@ -125,14 +130,16 @@ export class CommunityService {
   }
 
   async createMessage(
+    gymId: string,
     channelId: string,
     userId: string,
     dto: { content: string; mediaUrls?: string[]; parentId?: string },
   ): Promise<ChannelMessageEntity> {
-    // Verify channel exists
-    await this.getChannel(channelId);
+    // Verify channel exists in this gym
+    await this.getChannel(gymId, channelId);
 
     const message = this.messageRepo.create({
+      gymId,
       channelId,
       userId,
       content: dto.content,
@@ -156,8 +163,8 @@ export class CommunityService {
     return full ?? saved;
   }
 
-  async editMessage(messageId: string, userId: string, content: string): Promise<ChannelMessageEntity> {
-    const message = await this.messageRepo.findOne({ where: { id: messageId } });
+  async editMessage(gymId: string, messageId: string, userId: string, content: string): Promise<ChannelMessageEntity> {
+    const message = await this.messageRepo.findOne({ where: { id: messageId, gymId } });
     if (!message) throw new NotFoundException('Message not found');
     if (message.userId !== userId) throw new ForbiddenException('Cannot edit another user\'s message');
 
@@ -166,8 +173,8 @@ export class CommunityService {
     return this.messageRepo.save(message);
   }
 
-  async deleteMessage(messageId: string, userId: string, isAdmin = false): Promise<void> {
-    const message = await this.messageRepo.findOne({ where: { id: messageId } });
+  async deleteMessage(gymId: string, messageId: string, userId: string, isAdmin = false): Promise<void> {
+    const message = await this.messageRepo.findOne({ where: { id: messageId, gymId } });
     if (!message) throw new NotFoundException('Message not found');
     if (message.userId !== userId && !isAdmin) {
       throw new ForbiddenException('Cannot delete another user\'s message');
@@ -184,9 +191,9 @@ export class CommunityService {
     }
   }
 
-  async getReplies(messageId: string): Promise<any[]> {
+  async getReplies(gymId: string, messageId: string): Promise<any[]> {
     const replies = await this.messageRepo.find({
-      where: { parentId: messageId, isDeleted: false },
+      where: { gymId, parentId: messageId, isDeleted: false },
       relations: ['user'],
       order: { createdAt: 'ASC' },
     });
@@ -208,14 +215,14 @@ export class CommunityService {
 
   // ===== Reactions =====
 
-  async addReaction(messageId: string, userId: string, emoji: string): Promise<void> {
-    const message = await this.messageRepo.findOne({ where: { id: messageId } });
+  async addReaction(gymId: string, messageId: string, userId: string, emoji: string): Promise<void> {
+    const message = await this.messageRepo.findOne({ where: { id: messageId, gymId } });
     if (!message) throw new NotFoundException('Message not found');
 
     // Upsert — ignore if already exists
     try {
       await this.reactionRepo.save(
-        this.reactionRepo.create({ messageId, userId, emoji }),
+        this.reactionRepo.create({ gymId, messageId, userId, emoji }),
       );
     } catch (err: any) {
       // Unique constraint violation = already reacted, ignore
@@ -223,19 +230,20 @@ export class CommunityService {
     }
   }
 
-  async removeReaction(messageId: string, userId: string, emoji: string): Promise<void> {
-    await this.reactionRepo.delete({ messageId, userId, emoji });
+  async removeReaction(gymId: string, messageId: string, userId: string, emoji: string): Promise<void> {
+    await this.reactionRepo.delete({ gymId, messageId, userId, emoji });
   }
 
   // ===== Media Upload =====
 
   async getUploadUrl(
+    gymId: string,
     channelId: string,
     fileName: string,
     contentType: string,
   ): Promise<{ uploadUrl: string; downloadUrl: string; filePath: string }> {
     const bucket = admin.storage().bucket();
-    const filePath = `community/${channelId}/${Date.now()}-${fileName}`;
+    const filePath = `community/${gymId}/${channelId}/${Date.now()}-${fileName}`;
     const file = bucket.file(filePath);
 
     const [uploadUrl] = await file.getSignedUrl({
@@ -256,13 +264,14 @@ export class CommunityService {
 
   // ===== Admin: channel message count =====
 
-  async getChannelsWithStats(): Promise<any[]> {
-    const channels = await this.getChannels();
+  async getChannelsWithStats(gymId: string): Promise<any[]> {
+    const channels = await this.getChannels(gymId);
     const counts = await this.messageRepo
       .createQueryBuilder('m')
       .select('m.channelId', 'channelId')
       .addSelect('COUNT(*)', 'count')
-      .where('m.isDeleted = false')
+      .where('m.gymId = :gymId', { gymId })
+      .andWhere('m.isDeleted = false')
       .groupBy('m.channelId')
       .getRawMany();
 

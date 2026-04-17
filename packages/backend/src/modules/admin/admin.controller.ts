@@ -30,6 +30,7 @@ import type { Discipline, BadgeCategory } from '@training-grounds/shared';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { AdminService } from './admin.service';
+import type { AuthenticatedRequest } from '../../common/interfaces/authenticated-request.interface';
 
 // ==================== DTOs ====================
 
@@ -399,8 +400,12 @@ export class AdminController {
   // ---- Members ----
 
   @Get('members')
-  async getMembers(@Query() query: MembersQueryDto) {
+  async getMembers(
+    @Query() query: MembersQueryDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     const { members, total } = await this.adminService.getMembers(
+      req.gymId,
       query.search,
       query.role,
       query.page || 1,
@@ -420,124 +425,175 @@ export class AdminController {
   }
 
   @Get('members/:id')
-  async getMember(@Param('id') id: string) {
-    const member = await this.adminService.getMember(id);
+  async getMember(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const member = await this.adminService.getMember(req.gymId, id);
     return { success: true, data: member };
   }
 
   @Patch('members/:id')
-  async updateMember(@Param('id') id: string, @Body() dto: UpdateMemberDto) {
-    const member = await this.adminService.updateMember(id, dto);
+  async updateMember(
+    @Param('id') id: string,
+    @Body() dto: UpdateMemberDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const member = await this.adminService.updateMember(req.gymId, id, dto);
     return { success: true, data: member };
   }
 
   // ---- Classes ----
 
   @Get('classes')
-  async getClasses() {
-    const classes = await this.adminService.getClasses();
+  async getClasses(@Request() req: AuthenticatedRequest) {
+    const classes = await this.adminService.getClasses(req.gymId);
     return { success: true, data: classes };
   }
 
   @Post('classes')
-  async createClass(@Body() dto: CreateClassDto) {
-    const cls = await this.adminService.createClass(dto);
+  async createClass(
+    @Body() dto: CreateClassDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const cls = await this.adminService.createClass(req.gymId, dto);
     return { success: true, data: cls };
   }
 
   @Patch('classes/:id')
-  async updateClass(@Param('id') id: string, @Body() dto: UpdateClassDto) {
-    const cls = await this.adminService.updateClass(id, dto);
+  async updateClass(
+    @Param('id') id: string,
+    @Body() dto: UpdateClassDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const cls = await this.adminService.updateClass(req.gymId, id, dto);
     return { success: true, data: cls };
   }
 
   @Delete('classes/:id')
-  async deleteClass(@Param('id') id: string) {
-    await this.adminService.deleteClass(id);
+  async deleteClass(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    await this.adminService.deleteClass(req.gymId, id);
     return { success: true };
   }
 
   // ---- Badges ----
 
   @Get('badges')
-  async getBadges() {
-    const badges = await this.adminService.getBadges();
+  async getBadges(@Request() req: AuthenticatedRequest) {
+    const badges = await this.adminService.getBadges(req.gymId);
     return { success: true, data: badges };
   }
 
   @Post('badges')
-  async createBadge(@Body() dto: CreateBadgeDto) {
-    const badge = await this.adminService.createBadge(dto);
+  async createBadge(
+    @Body() dto: CreateBadgeDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const badge = await this.adminService.createBadge(req.gymId, dto);
     return { success: true, data: badge };
   }
 
   @Patch('badges/:id')
-  async updateBadge(@Param('id') id: string, @Body() dto: UpdateBadgeDto) {
-    const badge = await this.adminService.updateBadge(id, dto);
+  async updateBadge(
+    @Param('id') id: string,
+    @Body() dto: UpdateBadgeDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const badge = await this.adminService.updateBadge(req.gymId, id, dto);
     return { success: true, data: badge };
   }
 
   @Delete('badges/:id')
-  async deleteBadge(@Param('id') id: string) {
-    await this.adminService.deleteBadge(id);
+  async deleteBadge(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    await this.adminService.deleteBadge(req.gymId, id);
     return { success: true };
   }
 
   // ---- Quests ----
 
   @Get('quests')
-  async getQuests() {
-    const quests = await this.adminService.getQuests();
+  async getQuests(@Request() req: AuthenticatedRequest) {
+    const quests = await this.adminService.getQuests(req.gymId);
     return { success: true, data: quests };
   }
 
   @Post('quests')
-  async createQuest(@Body() dto: CreateQuestDto) {
-    const quest = await this.adminService.createQuest(dto);
+  async createQuest(
+    @Body() dto: CreateQuestDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const quest = await this.adminService.createQuest(req.gymId, dto);
     return { success: true, data: quest };
   }
 
   @Patch('quests/:id')
-  async updateQuest(@Param('id') id: string, @Body() dto: UpdateQuestDto) {
-    const quest = await this.adminService.updateQuest(id, dto);
+  async updateQuest(
+    @Param('id') id: string,
+    @Body() dto: UpdateQuestDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const quest = await this.adminService.updateQuest(req.gymId, id, dto);
     return { success: true, data: quest };
   }
 
   @Delete('quests/:id')
-  async deleteQuest(@Param('id') id: string) {
-    await this.adminService.deleteQuest(id);
+  async deleteQuest(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    await this.adminService.deleteQuest(req.gymId, id);
     return { success: true };
   }
 
   // ---- Courses ----
 
   @Get('courses')
-  async getCourses() {
-    const courses = await this.adminService.getCourses();
+  async getCourses(@Request() req: AuthenticatedRequest) {
+    const courses = await this.adminService.getCourses(req.gymId);
     return { success: true, data: courses };
   }
 
   @Post('courses')
-  async createCourse(@Body() dto: CreateCourseDto) {
-    const course = await this.adminService.createCourse(dto);
+  async createCourse(
+    @Body() dto: CreateCourseDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const course = await this.adminService.createCourse(req.gymId, dto);
     return { success: true, data: course };
   }
 
   @Patch('courses/:id')
-  async updateCourse(@Param('id') id: string, @Body() dto: UpdateCourseDto) {
-    const course = await this.adminService.updateCourse(id, dto);
+  async updateCourse(
+    @Param('id') id: string,
+    @Body() dto: UpdateCourseDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const course = await this.adminService.updateCourse(req.gymId, id, dto);
     return { success: true, data: course };
   }
 
   @Delete('courses/:id')
-  async deleteCourse(@Param('id') id: string) {
-    await this.adminService.deleteCourse(id);
+  async deleteCourse(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    await this.adminService.deleteCourse(req.gymId, id);
     return { success: true };
   }
 
   @Post('courses/:id/modules')
-  async addModule(@Param('id') courseId: string, @Body() dto: CreateModuleDto) {
-    const mod = await this.adminService.addModule(courseId, dto);
+  async addModule(
+    @Param('id') courseId: string,
+    @Body() dto: CreateModuleDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const mod = await this.adminService.addModule(req.gymId, courseId, dto);
     return { success: true, data: mod };
   }
 
@@ -545,34 +601,41 @@ export class AdminController {
   async updateModule(
     @Param('moduleId') moduleId: string,
     @Body() dto: UpdateModuleDto,
+    @Request() req: AuthenticatedRequest,
   ) {
-    const mod = await this.adminService.updateModule(moduleId, dto);
+    const mod = await this.adminService.updateModule(req.gymId, moduleId, dto);
     return { success: true, data: mod };
   }
 
   @Delete('courses/:courseId/modules/:moduleId')
-  async deleteModule(@Param('moduleId') moduleId: string) {
-    await this.adminService.deleteModule(moduleId);
+  async deleteModule(
+    @Param('moduleId') moduleId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    await this.adminService.deleteModule(req.gymId, moduleId);
     return { success: true };
   }
 
   // ---- Analytics ----
 
   @Get('analytics/overview')
-  async getOverview() {
-    const overview = await this.adminService.getOverview();
+  async getOverview(@Request() req: AuthenticatedRequest) {
+    const overview = await this.adminService.getOverview(req.gymId);
     return { success: true, data: overview };
   }
 
   @Get('analytics/attendance')
-  async getAttendanceTrends(@Query() query: AttendanceTrendsQueryDto) {
-    const trends = await this.adminService.getAttendanceTrends(query.days || 30);
+  async getAttendanceTrends(
+    @Query() query: AttendanceTrendsQueryDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const trends = await this.adminService.getAttendanceTrends(req.gymId, query.days || 30);
     return { success: true, data: trends };
   }
 
   @Get('analytics/disciplines')
-  async getDisciplineBreakdown() {
-    const breakdown = await this.adminService.getDisciplineBreakdown();
+  async getDisciplineBreakdown(@Request() req: AuthenticatedRequest) {
+    const breakdown = await this.adminService.getDisciplineBreakdown(req.gymId);
     return { success: true, data: breakdown };
   }
 
@@ -580,11 +643,13 @@ export class AdminController {
 
   @Get('journal-feed')
   async getJournalFeed(
+    @Request() req: AuthenticatedRequest,
     @Query('page') page?: string,
     @Query('perPage') perPage?: string,
     @Query('sharedOnly') sharedOnly?: string,
   ) {
     const result = await this.adminService.getJournalFeed(
+      req.gymId,
       page ? parseInt(page, 10) : 1,
       perPage ? parseInt(perPage, 10) : 20,
       sharedOnly !== 'false',
@@ -593,18 +658,22 @@ export class AdminController {
   }
 
   @Get('journal-feed/:entryId/comments')
-  async getJournalComments(@Param('entryId') entryId: string) {
-    const comments = await this.adminService.getJournalComments(entryId);
+  async getJournalComments(
+    @Param('entryId') entryId: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const comments = await this.adminService.getJournalComments(req.gymId, entryId);
     return { success: true, data: comments };
   }
 
   @Post('journal-feed/:entryId/comments')
   async addJournalComment(
     @Param('entryId') entryId: string,
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Body() body: { content: string },
   ) {
     const comment = await this.adminService.addJournalComment(
+      req.gymId,
       entryId,
       req.user.id,
       body.content,

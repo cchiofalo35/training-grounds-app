@@ -10,11 +10,17 @@ import {
 import type { Discipline, TrainingIntensity } from '@training-grounds/shared';
 import { UserEntity } from './user.entity';
 import { ClassScheduleEntity } from './class-schedule.entity';
+import { GymEntity } from './gym.entity';
 
 @Entity('attendance_records')
+@Index(['gymId', 'userId'])
 export class AttendanceRecordEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Index()
+  @Column({ type: 'uuid', nullable: true })
+  gymId!: string | null;
 
   @Index()
   @Column({ type: 'uuid' })
@@ -43,6 +49,10 @@ export class AttendanceRecordEntity {
 
   @Column({ type: 'uuid', nullable: true })
   classScheduleId!: string | null;
+
+  @ManyToOne(() => GymEntity, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'gymId' })
+  gym!: GymEntity | null;
 
   @ManyToOne(() => UserEntity, (user) => user.attendanceRecords, {
     onDelete: 'CASCADE',

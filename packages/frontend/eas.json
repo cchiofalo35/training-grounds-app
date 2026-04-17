@@ -7,21 +7,31 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "ios": {
-        "simulator": true
-      }
+      "ios": { "simulator": true }
     },
     "preview": {
       "distribution": "internal",
-      "ios": {
-        "simulator": false
-      }
+      "ios": { "simulator": false }
     },
     "production": {
       "autoIncrement": true,
-      "ios": {
-        "buildNumber": "1"
-      }
+      "ios": { "buildNumber": "1" }
+    },
+    "training-grounds": {
+      "extends": "production",
+      "env": { "EXPO_PUBLIC_TENANT": "training-grounds" }
+    },
+    "crossfit-karuna": {
+      "extends": "production",
+      "env": { "EXPO_PUBLIC_TENANT": "crossfit-karuna" }
+    },
+    "training-grounds-preview": {
+      "extends": "preview",
+      "env": { "EXPO_PUBLIC_TENANT": "training-grounds" }
+    },
+    "crossfit-karuna-preview": {
+      "extends": "preview",
+      "env": { "EXPO_PUBLIC_TENANT": "crossfit-karuna" }
     }
   },
   "submit": {
@@ -29,6 +39,20 @@
       "ios": {
         "appleId": "chris@zorro-studios.com",
         "ascAppId": "6761029689",
+        "appleTeamId": "ZM54C3W52G"
+      }
+    },
+    "training-grounds": {
+      "ios": {
+        "appleId": "chris@zorro-studios.com",
+        "ascAppId": "6761029689",
+        "appleTeamId": "ZM54C3W52G"
+      }
+    },
+    "crossfit-karuna": {
+      "ios": {
+        "appleId": "chris@zorro-studios.com",
+        "ascAppId": "6762426665",
         "appleTeamId": "ZM54C3W52G"
       }
     }
