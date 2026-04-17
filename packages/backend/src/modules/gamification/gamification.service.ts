@@ -32,15 +32,16 @@ export class GamificationService {
     private readonly notificationService: NotificationService,
   ) {}
 
-  async getUserBadges(userId: string): Promise<UserBadgeEntity[]> {
+  async getUserBadges(gymId: string, userId: string): Promise<UserBadgeEntity[]> {
     return this.userBadgeRepo.find({
-      where: { userId },
+      where: { gymId, userId },
       order: { earnedAt: 'DESC' },
       relations: ['badge'],
     });
   }
 
   async awardXp(
+    gymId: string,
     userId: string,
     amount: number,
     reason: string,
@@ -54,7 +55,7 @@ export class GamificationService {
     await this.userRepo.save(user);
 
     // Check for badge eligibility after XP award
-    await this.checkBadgeEligibility(userId);
+    await this.checkBadgeEligibility(gymId, userId);
 
     await this.notificationService.sendXpNotification(
       userId,
@@ -66,7 +67,7 @@ export class GamificationService {
     return user.totalXp;
   }
 
-  async updateStreak(userId: string): Promise<StreakInfo> {
+  async updateStreak(gymId: string, userId: string): Promise<StreakInfo> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -112,12 +113,12 @@ export class GamificationService {
     await this.userRepo.save(user);
 
     // Bonus XP for streak milestones
-    await this.checkStreakMilestones(user);
+    await this.checkStreakMilestones(gymId, user);
 
     return this.buildStreakInfo(user);
   }
 
-  async getStreak(userId: string): Promise<StreakInfo> {
+  async getStreak(gymId: string, userId: string): Promise<StreakInfo> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -142,7 +143,7 @@ export class GamificationService {
     };
   }
 
-  async freezeStreak(userId: string): Promise<StreakInfo> {
+  async freezeStreak(gymId: string, userId: string): Promise<StreakInfo> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -165,19 +166,23 @@ export class GamificationService {
   }
 
   async getLeaderboard(
+    gymId: string,
     page: number,
     perPage: number,
     period: LeaderboardPeriod = 'all-time',
     league?: LeagueType,
   ): Promise<{ entries: LeaderboardEntry[]; total: number }> {
     if (period === 'all-time') {
-      // All-time: sort by totalXp on user entity
+      // All-time: sort by totalXp, scoped to gym members
       const qb = this.userRepo.createQueryBuilder('u')
+        .innerJoin('gym_memberships', 'gm', 'gm.userId = u.id')
+        .where('gm.gymId = :gymId', { gymId })
+        .andWhere('gm.isActive = true')
         .orderBy('u.totalXp', 'DESC');
 
       if (league) {
         const [minXp, maxXp] = this.leagueXpRange(league);
-        qb.where('u.totalXp >= :minXp', { minXp });
+        qb.andWhere('u.totalXp >= :minXp', { minXp });
         if (maxXp !== null) {
           qb.andWhere('u.totalXp < :maxXp', { maxXp });
         }
@@ -203,14 +208,15 @@ export class GamificationService {
       return { entries, total };
     }
 
-    // Weekly/Monthly: aggregate XP from attendance records in the period
+    // Weekly/Monthly: aggregate XP from attendance records in the period, scoped to gym
     const periodStart = this.getPeriodStart(period);
 
     const qb = this.attendanceRepo
       .createQueryBuilder('a')
       .select('a.userId', 'userId')
       .addSelect('SUM(a.xpEarned)', 'periodXp')
-      .where('a.checkedInAt >= :periodStart', { periodStart })
+      .where('a.gymId = :gymId', { gymId })
+      .andWhere('a.checkedInAt >= :periodStart', { periodStart })
       .groupBy('a.userId')
       .orderBy('"periodXp"', 'DESC');
 
@@ -245,15 +251,21 @@ export class GamificationService {
     return { entries, total };
   }
 
-  async getAllBadges(): Promise<BadgeEntity[]> {
-    return this.badgeRepo.find({ order: { category: 'ASC', name: 'ASC' } });
+  async getAllBadges(gymId: string): Promise<BadgeEntity[]> {
+    return this.badgeRepo.find({
+      where: { gymId },
+      order: { category: 'ASC', name: 'ASC' },
+    });
   }
 
-  async getBadgeCatalog(userId: string): Promise<{
+  async getBadgeCatalog(gymId: string, userId: string): Promise<{
     badges: Array<BadgeEntity & { earned: boolean; earnedAt: string | null }>;
   }> {
-    const allBadges = await this.badgeRepo.find({ order: { category: 'ASC', name: 'ASC' } });
-    const earnedBadges = await this.userBadgeRepo.find({ where: { userId } });
+    const allBadges = await this.badgeRepo.find({
+      where: { gymId },
+      order: { category: 'ASC', name: 'ASC' },
+    });
+    const earnedBadges = await this.userBadgeRepo.find({ where: { gymId, userId } });
     const earnedMap = new Map(earnedBadges.map((ub) => [ub.badgeId, ub.earnedAt]));
 
     const badges = allBadges
@@ -269,28 +281,28 @@ export class GamificationService {
 
   // ==================== Quest Methods ====================
 
-  async getActiveQuests(): Promise<QuestEntity[]> {
+  async getActiveQuests(gymId: string): Promise<QuestEntity[]> {
     return this.questRepo.find({
-      where: { isActive: true },
+      where: { gymId, isActive: true },
       order: { type: 'ASC', name: 'ASC' },
     });
   }
 
-  async getUserQuests(userId: string): Promise<UserQuestEntity[]> {
+  async getUserQuests(gymId: string, userId: string): Promise<UserQuestEntity[]> {
     return this.userQuestRepo.find({
-      where: { userId },
+      where: { gymId, userId },
       relations: ['quest'],
       order: { createdAt: 'DESC' },
     });
   }
 
-  async getActiveQuestsWithProgress(userId: string): Promise<Array<{
+  async getActiveQuestsWithProgress(gymId: string, userId: string): Promise<Array<{
     quest: QuestEntity;
     progress: number;
     completedAt: string | null;
   }>> {
-    const activeQuests = await this.getActiveQuests();
-    const userQuests = await this.userQuestRepo.find({ where: { userId } });
+    const activeQuests = await this.getActiveQuests(gymId);
+    const userQuests = await this.userQuestRepo.find({ where: { gymId, userId } });
     const progressMap = new Map(userQuests.map((uq) => [uq.questId, uq]));
 
     // Calculate live progress for each quest
@@ -303,17 +315,18 @@ export class GamificationService {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const weeklyRecords = await this.attendanceRepo.count({
-      where: { userId, checkedInAt: MoreThanOrEqual(startOfWeek) },
+      where: { gymId, userId, checkedInAt: MoreThanOrEqual(startOfWeek) },
     });
 
     const monthlyRecords = await this.attendanceRepo.count({
-      where: { userId, checkedInAt: MoreThanOrEqual(startOfMonth) },
+      where: { gymId, userId, checkedInAt: MoreThanOrEqual(startOfMonth) },
     });
 
     const weeklyDisciplines = await this.attendanceRepo
       .createQueryBuilder('a')
       .select('DISTINCT a.discipline')
-      .where('a.userId = :userId', { userId })
+      .where('a.gymId = :gymId', { gymId })
+      .andWhere('a.userId = :userId', { userId })
       .andWhere('a.checkedInAt >= :start', { start: startOfWeek })
       .getRawMany();
 
@@ -341,17 +354,17 @@ export class GamificationService {
     });
   }
 
-  private async checkBadgeEligibility(userId: string): Promise<void> {
+  private async checkBadgeEligibility(gymId: string, userId: string): Promise<void> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) return;
 
-    const allBadges = await this.badgeRepo.find();
+    const allBadges = await this.badgeRepo.find({ where: { gymId } });
     const earnedBadgeIds = (
-      await this.userBadgeRepo.find({ where: { userId } })
+      await this.userBadgeRepo.find({ where: { gymId, userId } })
     ).map((ub) => ub.badgeId);
 
     const totalClasses = await this.attendanceRepo.count({
-      where: { userId },
+      where: { gymId, userId },
     });
 
     // Build discipline counts for discipline-based badges
@@ -359,7 +372,8 @@ export class GamificationService {
       .createQueryBuilder('a')
       .select('a.discipline', 'discipline')
       .addSelect('COUNT(*)', 'count')
-      .where('a.userId = :userId', { userId })
+      .where('a.gymId = :gymId', { gymId })
+      .andWhere('a.userId = :userId', { userId })
       .groupBy('a.discipline')
       .getRawMany<{ discipline: string; count: string }>();
 
@@ -370,7 +384,7 @@ export class GamificationService {
 
     // Get latest check-in time for custom badges
     const latestCheckin = await this.attendanceRepo.findOne({
-      where: { userId },
+      where: { gymId, userId },
       order: { checkedInAt: 'DESC' },
     });
 
@@ -440,6 +454,7 @@ export class GamificationService {
 
       if (earned) {
         const userBadge = this.userBadgeRepo.create({
+          gymId,
           userId,
           badgeId: badge.id,
         });
@@ -453,7 +468,7 @@ export class GamificationService {
     }
   }
 
-  private async checkStreakMilestones(user: UserEntity): Promise<void> {
+  private async checkStreakMilestones(gymId: string, user: UserEntity): Promise<void> {
     const milestones: Record<number, { xp: number; freezes: number }> = {
       7: { xp: 100, freezes: 1 },
       14: { xp: 250, freezes: 0 },
@@ -465,7 +480,7 @@ export class GamificationService {
 
     const milestone = milestones[user.currentStreak];
     if (milestone) {
-      await this.awardXp(user.id, milestone.xp, `streak_milestone_${user.currentStreak}`);
+      await this.awardXp(gymId, user.id, milestone.xp, `streak_milestone_${user.currentStreak}`);
 
       // Grant streak freezes at milestones
       if (milestone.freezes > 0) {

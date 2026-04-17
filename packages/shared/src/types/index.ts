@@ -17,6 +17,9 @@ export interface Gym {
   logoUrl?: string;
   primaryColor: string;
   secondaryColor: string;
+  surfaceColor: string;
+  textPrimary: string;
+  textMuted: string;
   headingFont: string;
   bodyFont: string;
   timezone: string;
@@ -25,6 +28,12 @@ export interface Gym {
   maxStreakFreezesPerMonth: number;
   referralProgramEnabled: boolean;
   communityEnabled: boolean;
+  videoLibraryEnabled?: boolean;
+  journalEnabled?: boolean;
+  coachesCornerEnabled?: boolean;
+  leaderboardsEnabled?: boolean;
+  prTrackingEnabled?: boolean;
+  benchmarkWodEnabled?: boolean;
   plan: GymPlan;
   trialEndsAt?: string;
   address?: string;
@@ -44,8 +53,11 @@ export interface GymMembership {
 }
 
 export interface GymTheme {
-  primaryColor: string;
-  secondaryColor: string;
+  primaryColor: string;   // Accent color (CTAs, active states) — replaces colors.warmAccent
+  secondaryColor: string; // Background color — replaces colors.charcoal
+  surfaceColor: string;   // Card/surface bg — replaces colors.darkGrey
+  textPrimary: string;    // Primary text — replaces colors.offWhite
+  textMuted: string;      // Muted text — replaces colors.steel
   headingFont: string;
   bodyFont: string;
   logoUrl?: string;
@@ -75,7 +87,7 @@ export interface User {
 
 // ==================== Attendance ====================
 
-export type Discipline = 'bjj-gi' | 'bjj-nogi' | 'muay-thai' | 'wrestling' | 'mma' | 'boxing' | 'open-mat';
+export type Discipline = 'bjj-gi' | 'bjj-nogi' | 'muay-thai' | 'wrestling' | 'mma' | 'boxing' | 'open-mat' | 'crossfit' | 'crossfit-kids' | 'weightlifting' | 'hyrox' | 'open-gym';
 
 export type TrainingIntensity = 'light' | 'moderate' | 'high' | 'all-out';
 

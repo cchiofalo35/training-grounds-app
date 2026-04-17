@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule, RequestMethod } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './modules/auth/auth.module';
@@ -10,6 +10,9 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { CommunityModule } from './modules/community/community.module';
 import { GymModule } from './modules/gym/gym.module';
+import { PersonalRecordModule } from './modules/personal-record/personal-record.module';
+import { TenantMiddleware } from './common/middleware/tenant.middleware';
+import { GymEntity } from './entities/gym.entity';
 
 @Module({
   imports: [
@@ -47,6 +50,8 @@ import { GymModule } from './modules/gym/gym.module';
       },
     }),
 
+    TypeOrmModule.forFeature([GymEntity]),
+
     GymModule,
     AuthModule,
     UserModule,
@@ -56,6 +61,19 @@ import { GymModule } from './modules/gym/gym.module';
     NotificationModule,
     AdminModule,
     CommunityModule,
+    PersonalRecordModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(TenantMiddleware)
+      .exclude(
+        { path: 'auth/(.*)', method: RequestMethod.ALL },
+        { path: 'gyms/:slug/theme', method: RequestMethod.GET },
+        { path: 'gyms', method: RequestMethod.GET },
+        { path: 'gyms', method: RequestMethod.POST },
+      )
+      .forRoutes('*');
+  }
+}

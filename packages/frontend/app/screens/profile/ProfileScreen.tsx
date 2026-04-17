@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -26,10 +26,13 @@ import { fetchStats } from '../../redux/slices/attendanceSlice';
 import { fetchStreak, fetchBadges } from '../../redux/slices/gamificationSlice';
 import { updateAvatar } from '../../redux/slices/authSlice';
 import { useAuth } from '../../hooks/useAuth';
+import { useGym } from '../../contexts/GymContext';
 import { Card } from '../../components/common/Card';
 import { BeltDisplay } from '../../components/common/BeltDisplay';
+import { useGymCopy } from '../../utils/gymCopy';
 import { StreakBadge } from '../../components/common/StreakBadge';
 import { Button } from '../../components/common/Button';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const BADGE_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
   attendance: 'fitness-outline',
@@ -47,6 +50,8 @@ const formatJoinDate = (dateStr: string): string => {
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch<AppDispatch>();
+  const theme = useTheme();
+  const gymCopy = useGymCopy();
   const { user, logout } = useAuth();
   const { stats } = useSelector((state: RootState) => state.attendance);
   const { streak, badges } = useSelector((state: RootState) => state.gamification);
@@ -84,6 +89,184 @@ export const ProfileScreen: React.FC = () => {
       dispatch(updateAvatar(result.assets[0].uri));
     }
   };
+
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.secondaryColor,
+    },
+    scrollContent: {
+      padding: spacing.base,
+      paddingBottom: spacing['3xl'],
+    },
+    // Profile Header
+    profileHeader: {
+      alignItems: 'center',
+      paddingVertical: spacing['2xl'],
+      gap: spacing.sm,
+    },
+    avatarContainer: {
+      position: 'relative',
+      marginBottom: spacing.sm,
+    },
+    avatarLarge: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      backgroundColor: theme.surfaceColor,
+      borderWidth: 3,
+      borderColor: theme.primaryColor,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    avatarImage: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      borderWidth: 3,
+      borderColor: theme.primaryColor,
+    },
+    avatarText: {
+      fontFamily: 'BebasNeue',
+      fontSize: fonts.size['3xl'],
+      color: theme.textPrimary,
+    },
+    editBadge: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      backgroundColor: theme.primaryColor,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: theme.secondaryColor,
+    },
+    userName: {
+      fontFamily: 'BebasNeue',
+      fontSize: fonts.size['2xl'],
+      color: theme.textPrimary,
+      letterSpacing: fonts.letterSpacing.wide * 32,
+    },
+    roleTag: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      color: theme.primaryColor,
+      fontWeight: fonts.weight.semibold,
+      letterSpacing: fonts.letterSpacing.wider * 11,
+      textTransform: 'uppercase',
+      backgroundColor: theme.primaryColor + '1F',
+      paddingVertical: 4,
+      paddingHorizontal: 12,
+      borderRadius: borderRadius.full,
+      overflow: 'hidden',
+      marginTop: spacing.xs,
+    },
+    // Stats Grid
+    statsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.md,
+      marginBottom: spacing.xl,
+    },
+    statCard: {
+      width: '47%',
+      alignItems: 'center',
+      gap: spacing.xs,
+      paddingVertical: spacing.lg,
+    },
+    statValue: {
+      fontFamily: 'BebasNeue',
+      fontSize: fonts.size.xl,
+      color: theme.textPrimary,
+    },
+    statLabel: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      color: theme.textMuted,
+      fontWeight: fonts.weight.medium,
+      textTransform: 'uppercase',
+      letterSpacing: fonts.letterSpacing.widest * 11,
+    },
+    // Streak
+    streakSection: {
+      marginBottom: spacing.xl,
+    },
+    streakRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    streakDetails: {
+      alignItems: 'flex-end',
+      gap: 4,
+    },
+    streakDetailText: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      color: theme.textMuted,
+    },
+    // Badges
+    sectionHeader: {
+      marginBottom: spacing.md,
+    },
+    sectionTitle: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      fontWeight: fonts.weight.semibold,
+      color: theme.textMuted,
+      letterSpacing: fonts.letterSpacing.widest * 11,
+      textTransform: 'uppercase',
+    },
+    emptyBadges: {
+      alignItems: 'center',
+      gap: spacing.sm,
+      paddingVertical: spacing.md,
+    },
+    emptyText: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      color: theme.textMuted,
+      textAlign: 'center',
+    },
+    badgeList: {
+      gap: spacing.md,
+      paddingBottom: spacing.sm,
+    },
+    badgeIconContainer: {
+      width: 48,
+      height: 48,
+      borderRadius: borderRadius.full,
+      backgroundColor: theme.primaryColor + '1F',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: spacing.xs,
+    },
+    badgeCard: {
+      width: 140,
+      alignItems: 'center',
+      gap: spacing.xs,
+    },
+    badgeName: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      fontWeight: fonts.weight.bold,
+      color: theme.textPrimary,
+      textAlign: 'center',
+    },
+    badgeDescription: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      color: theme.textMuted,
+      textAlign: 'center',
+    },
+    // Logout
+    logoutButton: {
+      marginTop: spacing['2xl'],
+    },
+  }), [theme]);
 
   if (!user) return null;
 
@@ -127,15 +310,17 @@ export const ProfileScreen: React.FC = () => {
               </View>
             )}
             <View style={styles.editBadge}>
-              <Ionicons name="camera" size={14} color={colors.offWhite} />
+              <Ionicons name="camera" size={14} color={theme.textPrimary} />
             </View>
           </Pressable>
           <Text style={styles.userName}>{user.name}</Text>
-          <BeltDisplay
-            belt={user.beltRank}
-            stripes={user.stripes}
-            size="large"
-          />
+          {gymCopy.showBeltPicker && (
+            <BeltDisplay
+              belt={user.beltRank}
+              stripes={user.stripes}
+              size="large"
+            />
+          )}
           <Text style={styles.roleTag}>
             {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
           </Text>
@@ -145,7 +330,7 @@ export const ProfileScreen: React.FC = () => {
         <View style={styles.statsGrid}>
           {statCards.map((stat) => (
             <Card key={stat.label} style={styles.statCard}>
-              <Ionicons name={stat.icon} size={24} color={colors.warmAccent} />
+              <Ionicons name={stat.icon} size={24} color={theme.primaryColor} />
               <Text style={styles.statValue}>{stat.value}</Text>
               <Text style={styles.statLabel}>{stat.label}</Text>
             </Card>
@@ -181,7 +366,7 @@ export const ProfileScreen: React.FC = () => {
         {badges.length === 0 ? (
           <Card>
             <View style={styles.emptyBadges}>
-              <Ionicons name="ribbon-outline" size={32} color={colors.steel} />
+              <Ionicons name="ribbon-outline" size={32} color={theme.textMuted} />
               <Text style={styles.emptyText}>
                 Keep training to earn your first badge!
               </Text>
@@ -199,7 +384,7 @@ export const ProfileScreen: React.FC = () => {
                   <Ionicons
                     name={BADGE_ICONS[ub.badge.category] ?? 'ribbon'}
                     size={28}
-                    color={colors.warmAccent}
+                    color={theme.primaryColor}
                   />
                 </View>
                 <Text style={styles.badgeName}>{ub.badge.name}</Text>
@@ -222,181 +407,3 @@ export const ProfileScreen: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.charcoal,
-  },
-  scrollContent: {
-    padding: spacing.base,
-    paddingBottom: spacing['3xl'],
-  },
-  // Profile Header
-  profileHeader: {
-    alignItems: 'center',
-    paddingVertical: spacing['2xl'],
-    gap: spacing.sm,
-  },
-  avatarContainer: {
-    position: 'relative',
-    marginBottom: spacing.sm,
-  },
-  avatarLarge: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: colors.darkGrey,
-    borderWidth: 3,
-    borderColor: colors.warmAccent,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarImage: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 3,
-    borderColor: colors.warmAccent,
-  },
-  avatarText: {
-    fontFamily: 'BebasNeue',
-    fontSize: fonts.size['3xl'],
-    color: colors.offWhite,
-  },
-  editBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.warmAccent,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.charcoal,
-  },
-  userName: {
-    fontFamily: 'BebasNeue',
-    fontSize: fonts.size['2xl'],
-    color: colors.offWhite,
-    letterSpacing: fonts.letterSpacing.wide * 32,
-  },
-  roleTag: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    color: colors.warmAccent,
-    fontWeight: fonts.weight.semibold,
-    letterSpacing: fonts.letterSpacing.wider * 11,
-    textTransform: 'uppercase',
-    backgroundColor: 'rgba(201, 168, 124, 0.12)',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: borderRadius.full,
-    overflow: 'hidden',
-    marginTop: spacing.xs,
-  },
-  // Stats Grid
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-    marginBottom: spacing.xl,
-  },
-  statCard: {
-    width: '47%',
-    alignItems: 'center',
-    gap: spacing.xs,
-    paddingVertical: spacing.lg,
-  },
-  statValue: {
-    fontFamily: 'BebasNeue',
-    fontSize: fonts.size.xl,
-    color: colors.offWhite,
-  },
-  statLabel: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    color: colors.steel,
-    fontWeight: fonts.weight.medium,
-    textTransform: 'uppercase',
-    letterSpacing: fonts.letterSpacing.widest * 11,
-  },
-  // Streak
-  streakSection: {
-    marginBottom: spacing.xl,
-  },
-  streakRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  streakDetails: {
-    alignItems: 'flex-end',
-    gap: 4,
-  },
-  streakDetailText: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.sm,
-    color: colors.steel,
-  },
-  // Badges
-  sectionHeader: {
-    marginBottom: spacing.md,
-  },
-  sectionTitle: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.semibold,
-    color: colors.steel,
-    letterSpacing: fonts.letterSpacing.widest * 11,
-    textTransform: 'uppercase',
-  },
-  emptyBadges: {
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
-  },
-  emptyText: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.sm,
-    color: colors.steel,
-    textAlign: 'center',
-  },
-  badgeList: {
-    gap: spacing.md,
-    paddingBottom: spacing.sm,
-  },
-  badgeIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: borderRadius.full,
-    backgroundColor: 'rgba(201, 168, 124, 0.12)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.xs,
-  },
-  badgeCard: {
-    width: 140,
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  badgeName: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.bold,
-    color: colors.offWhite,
-    textAlign: 'center',
-  },
-  badgeDescription: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    color: colors.steel,
-    textAlign: 'center',
-  },
-  // Logout
-  logoutButton: {
-    marginTop: spacing['2xl'],
-  },
-});

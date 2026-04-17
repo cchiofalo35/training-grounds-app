@@ -65,6 +65,9 @@ export class GymController {
       data: {
         primaryColor: gym.primaryColor,
         secondaryColor: gym.secondaryColor,
+        surfaceColor: gym.surfaceColor,
+        textPrimary: gym.textPrimary,
+        textMuted: gym.textMuted,
         headingFont: gym.headingFont,
         bodyFont: gym.bodyFont,
         logoUrl: gym.logoUrl,

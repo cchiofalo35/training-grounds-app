@@ -19,7 +19,7 @@ import {
 import type { Discipline, TrainingIntensity } from '@training-grounds/shared';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { AttendanceService } from './attendance.service';
-import type { UserEntity } from '../../entities/user.entity';
+import type { AuthenticatedRequest } from '../../common/interfaces/authenticated-request.interface';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 
@@ -82,10 +82,6 @@ class SearchQueryDto {
   q!: string;
 }
 
-interface AuthenticatedRequest {
-  user: UserEntity;
-}
-
 @Controller('attendance')
 @UseGuards(AuthGuard('jwt'))
 export class AttendanceController {
@@ -96,7 +92,7 @@ export class AttendanceController {
     @Body() dto: CheckinDto,
     @Request() req: AuthenticatedRequest,
   ) {
-    const record = await this.attendanceService.checkin(req.user.id, {
+    const record = await this.attendanceService.checkin(req.gymId, req.user.id, {
       classId: dto.classId,
       className: dto.className,
       discipline: dto.discipline,
@@ -112,6 +108,7 @@ export class AttendanceController {
     @Request() req: AuthenticatedRequest,
   ) {
     const { records, total } = await this.attendanceService.getHistory(
+      req.gymId,
       req.user.id,
       pagination.page,
       pagination.perPage,
@@ -131,7 +128,7 @@ export class AttendanceController {
 
   @Get('stats')
   async getStats(@Request() req: AuthenticatedRequest) {
-    const stats = await this.attendanceService.getStats(req.user.id);
+    const stats = await this.attendanceService.getStats(req.gymId, req.user.id);
     return { success: true, data: stats };
   }
 
@@ -144,7 +141,7 @@ export class AttendanceController {
     @Body() dto: CoachCheckinDto,
     @Request() req: AuthenticatedRequest,
   ) {
-    const record = await this.attendanceService.coachCheckin(req.user.id, dto.memberEmail, {
+    const record = await this.attendanceService.coachCheckin(req.gymId, req.user.id, dto.memberEmail, {
       classId: dto.classId,
       className: dto.className,
       discipline: dto.discipline,
@@ -157,8 +154,11 @@ export class AttendanceController {
   @Get('coach-checkin/search')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('coach', 'admin')
-  async searchMembers(@Query() query: SearchQueryDto) {
-    const members = await this.attendanceService.searchMembers(query.q);
+  async searchMembers(
+    @Query() query: SearchQueryDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const members = await this.attendanceService.searchMembers(req.gymId, query.q);
     return { success: true, data: members };
   }
 
@@ -167,9 +167,10 @@ export class AttendanceController {
   @Roles('coach', 'admin')
   async getClassRoster(
     @Param('classScheduleId') classScheduleId: string,
+    @Request() req: AuthenticatedRequest,
     @Query('date') date?: string,
   ) {
-    const roster = await this.attendanceService.getClassRoster(classScheduleId, date);
+    const roster = await this.attendanceService.getClassRoster(req.gymId, classScheduleId, date);
     return { success: true, data: roster };
   }
 }

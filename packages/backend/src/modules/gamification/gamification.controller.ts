@@ -10,12 +10,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { IsOptional, IsIn } from 'class-validator';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { GamificationService, type LeaderboardPeriod } from './gamification.service';
-import type { UserEntity } from '../../entities/user.entity';
+import type { AuthenticatedRequest } from '../../common/interfaces/authenticated-request.interface';
 import type { LeagueType } from '@training-grounds/shared';
-
-interface AuthenticatedRequest {
-  user: UserEntity;
-}
 
 class LeaderboardQueryDto extends PaginationDto {
   @IsOptional()
@@ -34,31 +30,35 @@ export class GamificationController {
 
   @Get('streak')
   async getStreak(@Request() req: AuthenticatedRequest) {
-    const streak = await this.gamificationService.getStreak(req.user.id);
+    const streak = await this.gamificationService.getStreak(req.gymId, req.user.id);
     return { success: true, data: streak };
   }
 
   @Post('streak/freeze')
   async freezeStreak(@Request() req: AuthenticatedRequest) {
-    const streak = await this.gamificationService.freezeStreak(req.user.id);
+    const streak = await this.gamificationService.freezeStreak(req.gymId, req.user.id);
     return { success: true, data: streak };
   }
 
   @Get('badges')
   async getBadges(@Request() req: AuthenticatedRequest) {
-    const badges = await this.gamificationService.getUserBadges(req.user.id);
+    const badges = await this.gamificationService.getUserBadges(req.gymId, req.user.id);
     return { success: true, data: badges };
   }
 
   @Get('badges/catalog')
   async getBadgeCatalog(@Request() req: AuthenticatedRequest) {
-    const catalog = await this.gamificationService.getBadgeCatalog(req.user.id);
+    const catalog = await this.gamificationService.getBadgeCatalog(req.gymId, req.user.id);
     return { success: true, data: catalog.badges };
   }
 
   @Get('leaderboard')
-  async getLeaderboard(@Query() query: LeaderboardQueryDto) {
+  async getLeaderboard(
+    @Query() query: LeaderboardQueryDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     const { entries, total } = await this.gamificationService.getLeaderboard(
+      req.gymId,
       query.page,
       query.perPage,
       query.period ?? 'all-time',
@@ -80,6 +80,7 @@ export class GamificationController {
   @Get('quests')
   async getQuests(@Request() req: AuthenticatedRequest) {
     const quests = await this.gamificationService.getActiveQuestsWithProgress(
+      req.gymId,
       req.user.id,
     );
     return { success: true, data: quests };

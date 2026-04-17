@@ -37,6 +37,15 @@ export class GymEntity {
   @Column({ type: 'varchar', length: 7, default: '#1E1E1E' })
   secondaryColor!: string;
 
+  @Column({ type: 'varchar', length: 7, default: '#2A2A2A' })
+  surfaceColor!: string;
+
+  @Column({ type: 'varchar', length: 7, default: '#FAFAF8' })
+  textPrimary!: string;
+
+  @Column({ type: 'varchar', length: 7, default: '#B0B5B8' })
+  textMuted!: string;
+
   @Column({ type: 'varchar', length: 100, default: 'Bebas Neue' })
   headingFont!: string;
 
@@ -60,6 +69,24 @@ export class GymEntity {
 
   @Column({ type: 'boolean', default: true })
   communityEnabled!: boolean;
+
+  @Column({ type: 'boolean', default: true })
+  videoLibraryEnabled!: boolean;
+
+  @Column({ type: 'boolean', default: true })
+  journalEnabled!: boolean;
+
+  @Column({ type: 'boolean', default: true })
+  coachesCornerEnabled!: boolean;
+
+  @Column({ type: 'boolean', default: true })
+  leaderboardsEnabled!: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  prTrackingEnabled!: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  benchmarkWodEnabled!: boolean;
 
   @Column({ type: 'varchar', length: 20, default: 'starter' })
   plan!: string;

@@ -24,6 +24,8 @@ import { StreakBadge } from '../../components/common/StreakBadge';
 import { XpProgressBar } from '../../components/common/XpProgressBar';
 import { BeltDisplay } from '../../components/common/BeltDisplay';
 import { ProfileAvatar } from '../../components/common/ProfileAvatar';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useGymCopy } from '../../utils/gymCopy';
 import type { MainTabParamList } from '../../navigation/MainTabs';
 import type { AppStackParamList } from '../../navigation/AppStack';
 
@@ -40,15 +42,25 @@ const DISCIPLINE_LABELS: Record<Discipline, string> = {
   mma: 'MMA',
   boxing: 'Boxing',
   'open-mat': 'Open Mat',
+  crossfit: 'CrossFit',
+  'crossfit-kids': 'CrossFit Kids',
+  weightlifting: 'Weightlifting',
+  hyrox: 'HYROX',
+  'open-gym': 'Open Gym',
 };
 
-const calculateLeague = (xp: number): { name: string; color: string } => {
-  if (xp >= 50000) return { name: 'Black Belt Elite', color: colors.league.blackBelt };
-  if (xp >= 25000) return { name: 'Diamond', color: colors.league.diamond };
-  if (xp >= 10000) return { name: 'Platinum', color: colors.league.platinum };
-  if (xp >= 5000) return { name: 'Gold', color: colors.league.gold };
-  if (xp >= 2000) return { name: 'Silver', color: colors.league.silver };
-  return { name: 'Bronze', color: colors.league.bronze };
+const calculateLeague = (
+  xp: number,
+  ladder: Array<{ key: string; label: string }>,
+): { name: string; color: string } => {
+  // ladder order: [bronze, silver, gold, platinum, diamond, black-belt-elite]
+  const lbl = (idx: number) => ladder[idx]?.label ?? 'Bronze';
+  if (xp >= 50000) return { name: lbl(5), color: colors.league.blackBelt };
+  if (xp >= 25000) return { name: lbl(4), color: colors.league.diamond };
+  if (xp >= 10000) return { name: lbl(3), color: colors.league.platinum };
+  if (xp >= 5000) return { name: lbl(2), color: colors.league.gold };
+  if (xp >= 2000) return { name: lbl(1), color: colors.league.silver };
+  return { name: lbl(0), color: colors.league.bronze };
 };
 
 const formatRelativeDate = (dateStr: string): string => {
@@ -75,35 +87,69 @@ interface Quest {
 }
 
 const buildWeeklyQuests = (
+  gymSlug: string | null | undefined,
   weeklyClasses: number,
   weeklyDisciplines: Set<string>,
   hasJournalThisWeek: boolean,
-): Quest[] => [
-  {
-    title: 'Attend 3 classes',
-    current: Math.min(weeklyClasses, 3),
-    target: 3,
-    xpReward: 150,
-    icon: 'fitness',
-    iconColor: '#FF9F43',
-  },
-  {
-    title: 'Train 2 disciplines',
-    current: Math.min(weeklyDisciplines.size, 2),
-    target: 2,
-    xpReward: 100,
-    icon: 'flash',
-    iconColor: '#54A0FF',
-  },
-  {
-    title: 'Write a journal entry',
-    current: hasJournalThisWeek ? 1 : 0,
-    target: 1,
-    xpReward: 75,
-    icon: 'journal',
-    iconColor: '#5F27CD',
-  },
-];
+): Quest[] => {
+  const isCrossFit = gymSlug === 'crossfit-karuna' || gymSlug === 'karuna-crossfit';
+
+  if (isCrossFit) {
+    return [
+      {
+        title: '3 WODs this week',
+        current: Math.min(weeklyClasses, 3),
+        target: 3,
+        xpReward: 100,
+        icon: 'barbell',
+        iconColor: '#8BC53F',
+      },
+      {
+        title: 'Log a PR',
+        current: 0,
+        target: 1,
+        xpReward: 150,
+        icon: 'trophy',
+        iconColor: '#FF9F43',
+      },
+      {
+        title: 'Post a WOD result',
+        current: hasJournalThisWeek ? 1 : 0,
+        target: 1,
+        xpReward: 75,
+        icon: 'journal',
+        iconColor: '#5F27CD',
+      },
+    ];
+  }
+
+  return [
+    {
+      title: 'Attend 3 classes',
+      current: Math.min(weeklyClasses, 3),
+      target: 3,
+      xpReward: 150,
+      icon: 'fitness',
+      iconColor: '#FF9F43',
+    },
+    {
+      title: 'Train 2 disciplines',
+      current: Math.min(weeklyDisciplines.size, 2),
+      target: 2,
+      xpReward: 100,
+      icon: 'flash',
+      iconColor: '#54A0FF',
+    },
+    {
+      title: 'Write a journal entry',
+      current: hasJournalThisWeek ? 1 : 0,
+      target: 1,
+      xpReward: 75,
+      icon: 'journal',
+      iconColor: '#5F27CD',
+    },
+  ];
+};
 
 /* ─── Heatmap helpers ─── */
 
@@ -175,9 +221,13 @@ const getMonthlyChallenge = (records: AttendanceRecord[]) => {
   return { monthName, current: Math.min(thisMonthClasses, target), target, daysLeft };
 };
 
+const CELL_SIZE = 14;
+const CELL_GAP = 3;
+
 export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<DashboardNavProp>();
   const dispatch = useDispatch<AppDispatch>();
+  const theme = useTheme();
 
   const user = useSelector((state: RootState) => state.auth.user);
   const { records, isLoading: attendanceLoading } = useSelector(
@@ -206,6 +256,10 @@ export const DashboardScreen: React.FC = () => {
   };
 
   // Computed data
+  const gymCopy = useGymCopy();
+  const activeGym = useSelector((state: RootState) =>
+    state.gym.gyms.find((g) => g.id === state.gym.activeGymId),
+  );
   const recentRecords = records.slice(0, 5);
   const firstName = user?.name?.split(' ')[0] ?? 'Athlete';
   const totalXp = user?.totalXp ?? 0;
@@ -213,7 +267,7 @@ export const DashboardScreen: React.FC = () => {
   const currentLevel = Math.floor(totalXp / XP_PER_LEVEL) + 1;
   const xpInLevel = totalXp % XP_PER_LEVEL;
   const nextLevelXp = XP_PER_LEVEL;
-  const league = calculateLeague(totalXp);
+  const league = calculateLeague(totalXp, gymCopy.leagueLadder);
 
   // Weekly quest data
   const weeklyData = useMemo(() => {
@@ -243,8 +297,8 @@ export const DashboardScreen: React.FC = () => {
         };
       });
     }
-    return buildWeeklyQuests(weeklyData.count, weeklyData.disciplines, false);
-  }, [apiQuests, weeklyData]);
+    return buildWeeklyQuests(activeGym?.slug, weeklyData.count, weeklyData.disciplines, false);
+  }, [apiQuests, weeklyData, activeGym?.slug]);
   const completedQuests = weeklyQuests.filter((q) => q.current >= q.target).length;
 
   // Heatmap
@@ -252,6 +306,388 @@ export const DashboardScreen: React.FC = () => {
 
   // Monthly challenge
   const monthly = useMemo(() => getMonthlyChallenge(records), [records]);
+
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.secondaryColor,
+    },
+    scrollContent: {
+      padding: spacing.base,
+      paddingBottom: spacing['3xl'],
+    },
+    greetingRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: spacing.xl,
+    },
+    greetingSection: {
+      flex: 1,
+      gap: spacing.xs,
+    },
+    greeting: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.base,
+      color: theme.textMuted,
+    },
+    greetingName: {
+      fontFamily: 'BebasNeue',
+      fontSize: fonts.size['3xl'],
+      color: theme.textPrimary,
+      letterSpacing: fonts.letterSpacing.wide * 40,
+      lineHeight: 44,
+    },
+    statsRow: {
+      flexDirection: 'row',
+      gap: spacing.md,
+      marginBottom: spacing.base,
+    },
+    streakCard: {
+      flex: 1,
+      gap: spacing.sm,
+    },
+    xpCard: {
+      flex: 1.5,
+      gap: spacing.sm,
+    },
+    streakSubtext: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      color: theme.textMuted,
+    },
+    totalXpText: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      color: theme.textMuted,
+      textAlign: 'right',
+    },
+    checkInButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.primaryColor,
+      borderRadius: borderRadius.xl,
+      padding: spacing.base,
+      marginBottom: spacing.xl,
+      gap: spacing.md,
+    },
+    checkInTextContainer: {
+      flex: 1,
+    },
+    checkInTitle: {
+      fontFamily: 'BebasNeue',
+      fontSize: fonts.size.lg,
+      color: theme.secondaryColor,
+      letterSpacing: fonts.letterSpacing.wide * 20,
+    },
+    checkInSubtext: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      color: 'rgba(30, 30, 30, 0.7)',
+    },
+    journalButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.surfaceColor,
+      borderRadius: borderRadius.xl,
+      padding: spacing.base,
+      marginBottom: spacing.xl,
+      gap: spacing.md,
+      borderWidth: 1,
+      borderColor: colors.borderDark,
+    },
+    journalButtonTitle: {
+      fontFamily: 'BebasNeue',
+      fontSize: fonts.size.md,
+      color: theme.textPrimary,
+      letterSpacing: fonts.letterSpacing.wide * 18,
+    },
+    journalButtonSubtext: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      color: theme.textMuted,
+    },
+
+    /* ─── Section headers ─── */
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: spacing.md,
+      marginTop: spacing.md,
+    },
+    sectionTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+    },
+    sectionTitle: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      fontWeight: fonts.weight.semibold,
+      color: theme.textMuted,
+      letterSpacing: fonts.letterSpacing.widest * 11,
+      textTransform: 'uppercase',
+    },
+    sectionCount: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      color: theme.textMuted,
+    },
+
+    /* ─── Weekly Quests ─── */
+    questsCard: {
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.base,
+      gap: 0,
+    },
+    questRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      paddingVertical: spacing.md,
+    },
+    questIconContainer: {
+      width: 36,
+      height: 36,
+      borderRadius: borderRadius.lg,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    questInfo: {
+      flex: 1,
+      gap: spacing.xs,
+    },
+    questTitle: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      fontWeight: fonts.weight.semibold,
+      color: theme.textPrimary,
+    },
+    questTitleComplete: {
+      color: theme.textMuted,
+      textDecorationLine: 'line-through',
+    },
+    questProgressBarBg: {
+      height: 20,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+      borderRadius: borderRadius.full,
+      overflow: 'hidden',
+      justifyContent: 'center',
+    },
+    questProgressBarFill: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      borderRadius: borderRadius.full,
+    },
+    questProgressText: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      fontWeight: fonts.weight.bold,
+      color: theme.textPrimary,
+      textAlign: 'center',
+    },
+    questReward: {
+      alignItems: 'center',
+      minWidth: 40,
+    },
+    questXp: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      fontWeight: fonts.weight.bold,
+      color: theme.primaryColor,
+    },
+    questDivider: {
+      height: 1,
+      backgroundColor: colors.borderDark,
+    },
+
+    /* ─── Monthly Challenge ─── */
+    monthlyCard: {
+      borderWidth: 1,
+      borderColor: theme.primaryColor + '40',
+      marginTop: spacing.md,
+      marginBottom: spacing.md,
+    },
+    monthlyRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.base,
+    },
+    monthlyInfo: {
+      flex: 1,
+      gap: spacing.sm,
+    },
+    monthlyTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+    },
+    monthlyTitle: {
+      fontFamily: 'BebasNeue',
+      fontSize: fonts.size.lg,
+      color: theme.primaryColor,
+      letterSpacing: fonts.letterSpacing.wide * 20,
+    },
+    monthlySubtext: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      color: theme.textMuted,
+    },
+    monthlyBarBg: {
+      height: 8,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+      borderRadius: borderRadius.full,
+      overflow: 'hidden',
+    },
+    monthlyBarFill: {
+      height: '100%',
+      backgroundColor: theme.primaryColor,
+      borderRadius: borderRadius.full,
+    },
+    monthlyProgress: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      color: theme.textMuted,
+    },
+    monthlyProgressBold: {
+      fontWeight: fonts.weight.bold,
+      color: theme.primaryColor,
+    },
+    monthlyBadge: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: theme.primaryColor + '1A',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    /* ─── Training Heatmap ─── */
+    heatmapCard: {
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.md,
+    },
+    heatmapMonthRow: {
+      flexDirection: 'row',
+      marginBottom: 2,
+    },
+    heatmapDayLabelSpacer: {
+      width: 18,
+    },
+    heatmapRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: CELL_GAP,
+    },
+    heatmapDayLabel: {
+      width: 18,
+      alignItems: 'center',
+    },
+    heatmapDayText: {
+      fontFamily: 'Inter',
+      fontSize: 9,
+      color: theme.textMuted,
+    },
+    heatmapCell: {
+      width: CELL_SIZE,
+      height: 14,
+      marginRight: CELL_GAP,
+    },
+    heatmapCellBox: {
+      width: CELL_SIZE,
+      height: CELL_SIZE,
+      borderRadius: 3,
+      marginRight: CELL_GAP,
+    },
+    heatmapMonthLabel: {
+      fontFamily: 'Inter',
+      fontSize: 9,
+      color: theme.textMuted,
+    },
+    heatmapLegend: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      gap: 4,
+      marginTop: spacing.sm,
+    },
+    heatmapLegendText: {
+      fontFamily: 'Inter',
+      fontSize: 9,
+      color: theme.textMuted,
+    },
+    heatmapLegendBox: {
+      width: 10,
+      height: 10,
+      borderRadius: 2,
+    },
+
+    /* ─── Recent classes ─── */
+    attendanceCard: {
+      marginBottom: spacing.sm,
+    },
+    attendanceRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    attendanceInfo: {
+      flex: 1,
+      gap: 2,
+    },
+    className: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.base,
+      fontWeight: fonts.weight.semibold,
+      color: theme.textPrimary,
+    },
+    discipline: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      color: theme.textMuted,
+    },
+    attendanceMeta: {
+      alignItems: 'flex-end',
+      gap: 2,
+    },
+    xpEarned: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      fontWeight: fonts.weight.bold,
+      color: theme.primaryColor,
+    },
+    dateText: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      color: theme.textMuted,
+    },
+    leagueBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      backgroundColor: theme.primaryColor + '14',
+      paddingVertical: 4,
+      paddingHorizontal: spacing.sm,
+      borderRadius: borderRadius.full,
+    },
+    leagueText: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      fontWeight: fonts.weight.semibold as any,
+      textTransform: 'uppercase',
+      letterSpacing: fonts.letterSpacing.wider * 11,
+    },
+    emptyText: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      color: theme.textMuted,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+  }), [theme]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -261,7 +697,7 @@ export const DashboardScreen: React.FC = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.warmAccent}
+            tintColor={theme.primaryColor}
           />
         }
       >
@@ -270,13 +706,13 @@ export const DashboardScreen: React.FC = () => {
           <View style={styles.greetingSection}>
             <Text style={styles.greeting}>Welcome back,</Text>
             <Text style={styles.greetingName}>{firstName}</Text>
-          {user && (
+          {user && gymCopy.showBeltPicker && (
             <BeltDisplay belt={user.beltRank} stripes={user.stripes} size="small" />
           )}
           <View style={styles.leagueBadge}>
             <Ionicons name="shield" size={16} color={league.color} />
             <Text style={[styles.leagueText, { color: league.color }]}>
-              {league.name} League
+              {league.name.toLowerCase().includes('league') ? league.name : `${league.name} League`}
             </Text>
           </View>
           </View>
@@ -316,12 +752,12 @@ export const DashboardScreen: React.FC = () => {
           ]}
           onPress={() => navigation.navigate('CheckIn')}
         >
-          <Ionicons name="qr-code" size={28} color={colors.charcoal} />
+          <Ionicons name="qr-code" size={28} color={theme.secondaryColor} />
           <View style={styles.checkInTextContainer}>
             <Text style={styles.checkInTitle}>QUICK CHECK-IN</Text>
             <Text style={styles.checkInSubtext}>Scan QR or select class</Text>
           </View>
-          <Ionicons name="arrow-forward" size={24} color={colors.charcoal} />
+          <Ionicons name="arrow-forward" size={24} color={theme.secondaryColor} />
         </Pressable>
 
         {/* Add Journal Entry Button */}
@@ -332,13 +768,31 @@ export const DashboardScreen: React.FC = () => {
           ]}
           onPress={() => navigation.navigate('Journal')}
         >
-          <Ionicons name="journal" size={24} color={colors.warmAccent} />
+          <Ionicons name="journal" size={24} color={theme.primaryColor} />
           <View style={styles.checkInTextContainer}>
             <Text style={styles.journalButtonTitle}>ADD JOURNAL ENTRY</Text>
             <Text style={styles.journalButtonSubtext}>Reflect on your training</Text>
           </View>
-          <Ionicons name="arrow-forward" size={20} color={colors.warmAccent} />
+          <Ionicons name="arrow-forward" size={20} color={theme.primaryColor} />
         </Pressable>
+
+        {/* Lift Tracker — only shown for gyms with PR tracking enabled */}
+        {activeGym?.prTrackingEnabled && (
+          <Pressable
+            style={({ pressed }) => [
+              styles.journalButton,
+              { opacity: pressed ? 0.85 : 1 },
+            ]}
+            onPress={() => navigation.navigate('Weightlifting')}
+          >
+            <Ionicons name="barbell" size={24} color={theme.primaryColor} />
+            <View style={styles.checkInTextContainer}>
+              <Text style={styles.journalButtonTitle}>LIFT TRACKER</Text>
+              <Text style={styles.journalButtonSubtext}>Log PRs, see your journey, work % of max</Text>
+            </View>
+            <Ionicons name="arrow-forward" size={20} color={theme.primaryColor} />
+          </Pressable>
+        )}
 
         {/* ─── Weekly Quests ─── */}
         <View style={styles.sectionHeader}>
@@ -369,7 +823,7 @@ export const DashboardScreen: React.FC = () => {
                           styles.questProgressBarFill,
                           {
                             width: `${Math.min(progress * 100, 100)}%`,
-                            backgroundColor: isComplete ? colors.success : colors.warmAccent,
+                            backgroundColor: isComplete ? colors.success : theme.primaryColor,
                           },
                         ]}
                       />
@@ -397,7 +851,7 @@ export const DashboardScreen: React.FC = () => {
           <View style={styles.monthlyRow}>
             <View style={styles.monthlyInfo}>
               <View style={styles.monthlyTitleRow}>
-                <Ionicons name="trophy" size={18} color={colors.warmAccent} />
+                <Ionicons name="trophy" size={18} color={theme.primaryColor} />
                 <Text style={styles.monthlyTitle}>{monthly.monthName} Challenge</Text>
               </View>
               <Text style={styles.monthlySubtext}>
@@ -423,7 +877,7 @@ export const DashboardScreen: React.FC = () => {
               <Ionicons
                 name={monthly.current >= monthly.target ? 'medal' : 'medal-outline'}
                 size={40}
-                color={monthly.current >= monthly.target ? colors.warmAccent : colors.steel}
+                color={monthly.current >= monthly.target ? theme.primaryColor : theme.textMuted}
               />
             </View>
           </View>
@@ -432,7 +886,7 @@ export const DashboardScreen: React.FC = () => {
         {/* ─── Training Heatmap ─── */}
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleRow}>
-            <Ionicons name="grid" size={14} color={colors.warmAccent} />
+            <Ionicons name="grid" size={14} color={theme.primaryColor} />
             <Text style={styles.sectionTitle}>TRAINING ACTIVITY</Text>
           </View>
           <Text style={styles.sectionCount}>{records.length} classes</Text>
@@ -520,388 +974,3 @@ export const DashboardScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-const CELL_SIZE = 14;
-const CELL_GAP = 3;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.charcoal,
-  },
-  scrollContent: {
-    padding: spacing.base,
-    paddingBottom: spacing['3xl'],
-  },
-  greetingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: spacing.xl,
-  },
-  greetingSection: {
-    flex: 1,
-    gap: spacing.xs,
-  },
-  greeting: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.base,
-    color: colors.steel,
-  },
-  greetingName: {
-    fontFamily: 'BebasNeue',
-    fontSize: fonts.size['3xl'],
-    color: colors.offWhite,
-    letterSpacing: fonts.letterSpacing.wide * 40,
-    lineHeight: 44,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginBottom: spacing.base,
-  },
-  streakCard: {
-    flex: 1,
-    gap: spacing.sm,
-  },
-  xpCard: {
-    flex: 1.5,
-    gap: spacing.sm,
-  },
-  streakSubtext: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    color: colors.steel,
-  },
-  totalXpText: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    color: colors.steel,
-    textAlign: 'right',
-  },
-  checkInButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.warmAccent,
-    borderRadius: borderRadius.xl,
-    padding: spacing.base,
-    marginBottom: spacing.xl,
-    gap: spacing.md,
-  },
-  checkInTextContainer: {
-    flex: 1,
-  },
-  checkInTitle: {
-    fontFamily: 'BebasNeue',
-    fontSize: fonts.size.lg,
-    color: colors.charcoal,
-    letterSpacing: fonts.letterSpacing.wide * 20,
-  },
-  checkInSubtext: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    color: 'rgba(30, 30, 30, 0.7)',
-  },
-  journalButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.darkGrey,
-    borderRadius: borderRadius.xl,
-    padding: spacing.base,
-    marginBottom: spacing.xl,
-    gap: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.borderDark,
-  },
-  journalButtonTitle: {
-    fontFamily: 'BebasNeue',
-    fontSize: fonts.size.md,
-    color: colors.offWhite,
-    letterSpacing: fonts.letterSpacing.wide * 18,
-  },
-  journalButtonSubtext: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    color: colors.steel,
-  },
-
-  /* ─── Section headers ─── */
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-    marginTop: spacing.md,
-  },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  sectionTitle: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.semibold,
-    color: colors.steel,
-    letterSpacing: fonts.letterSpacing.widest * 11,
-    textTransform: 'uppercase',
-  },
-  sectionCount: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    color: colors.textMuted,
-  },
-
-  /* ─── Weekly Quests ─── */
-  questsCard: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.base,
-    gap: 0,
-  },
-  questRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.md,
-  },
-  questIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: borderRadius.lg,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  questInfo: {
-    flex: 1,
-    gap: spacing.xs,
-  },
-  questTitle: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.semibold,
-    color: colors.offWhite,
-  },
-  questTitleComplete: {
-    color: colors.steel,
-    textDecorationLine: 'line-through',
-  },
-  questProgressBarBg: {
-    height: 20,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: borderRadius.full,
-    overflow: 'hidden',
-    justifyContent: 'center',
-  },
-  questProgressBarFill: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    borderRadius: borderRadius.full,
-  },
-  questProgressText: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.bold,
-    color: colors.offWhite,
-    textAlign: 'center',
-  },
-  questReward: {
-    alignItems: 'center',
-    minWidth: 40,
-  },
-  questXp: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.bold,
-    color: colors.warmAccent,
-  },
-  questDivider: {
-    height: 1,
-    backgroundColor: colors.borderDark,
-  },
-
-  /* ─── Monthly Challenge ─── */
-  monthlyCard: {
-    borderWidth: 1,
-    borderColor: 'rgba(201, 168, 124, 0.25)',
-    marginTop: spacing.md,
-    marginBottom: spacing.md,
-  },
-  monthlyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.base,
-  },
-  monthlyInfo: {
-    flex: 1,
-    gap: spacing.sm,
-  },
-  monthlyTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  monthlyTitle: {
-    fontFamily: 'BebasNeue',
-    fontSize: fonts.size.lg,
-    color: colors.warmAccent,
-    letterSpacing: fonts.letterSpacing.wide * 20,
-  },
-  monthlySubtext: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    color: colors.steel,
-  },
-  monthlyBarBg: {
-    height: 8,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: borderRadius.full,
-    overflow: 'hidden',
-  },
-  monthlyBarFill: {
-    height: '100%',
-    backgroundColor: colors.warmAccent,
-    borderRadius: borderRadius.full,
-  },
-  monthlyProgress: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    color: colors.steel,
-  },
-  monthlyProgressBold: {
-    fontWeight: fonts.weight.bold,
-    color: colors.warmAccent,
-  },
-  monthlyBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(201, 168, 124, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  /* ─── Training Heatmap ─── */
-  heatmapCard: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-  },
-  heatmapMonthRow: {
-    flexDirection: 'row',
-    marginBottom: 2,
-  },
-  heatmapDayLabelSpacer: {
-    width: 18,
-  },
-  heatmapRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: CELL_GAP,
-  },
-  heatmapDayLabel: {
-    width: 18,
-    alignItems: 'center',
-  },
-  heatmapDayText: {
-    fontFamily: 'Inter',
-    fontSize: 9,
-    color: colors.textMuted,
-  },
-  heatmapCell: {
-    width: CELL_SIZE,
-    height: 14,
-    marginRight: CELL_GAP,
-  },
-  heatmapCellBox: {
-    width: CELL_SIZE,
-    height: CELL_SIZE,
-    borderRadius: 3,
-    marginRight: CELL_GAP,
-  },
-  heatmapMonthLabel: {
-    fontFamily: 'Inter',
-    fontSize: 9,
-    color: colors.textMuted,
-  },
-  heatmapLegend: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: 4,
-    marginTop: spacing.sm,
-  },
-  heatmapLegendText: {
-    fontFamily: 'Inter',
-    fontSize: 9,
-    color: colors.textMuted,
-  },
-  heatmapLegendBox: {
-    width: 10,
-    height: 10,
-    borderRadius: 2,
-  },
-
-  /* ─── Recent classes ─── */
-  attendanceCard: {
-    marginBottom: spacing.sm,
-  },
-  attendanceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  attendanceInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  className: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.base,
-    fontWeight: fonts.weight.semibold,
-    color: colors.offWhite,
-  },
-  discipline: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.sm,
-    color: colors.steel,
-  },
-  attendanceMeta: {
-    alignItems: 'flex-end',
-    gap: 2,
-  },
-  xpEarned: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.bold,
-    color: colors.warmAccent,
-  },
-  dateText: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    color: colors.textMuted,
-  },
-  leagueBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: 'rgba(201, 168, 124, 0.08)',
-    paddingVertical: 4,
-    paddingHorizontal: spacing.sm,
-    borderRadius: borderRadius.full,
-  },
-  leagueText: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.semibold as any,
-    textTransform: 'uppercase',
-    letterSpacing: fonts.letterSpacing.wider * 11,
-  },
-  emptyText: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.sm,
-    color: colors.steel,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-});

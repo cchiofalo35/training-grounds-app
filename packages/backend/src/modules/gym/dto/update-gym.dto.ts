@@ -18,6 +18,21 @@ export class UpdateGymDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(7)
+  surfaceColor?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(7)
+  textPrimary?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(7)
+  textMuted?: string;
+
+  @IsOptional()
+  @IsString()
   headingFont?: string;
 
   @IsOptional()
