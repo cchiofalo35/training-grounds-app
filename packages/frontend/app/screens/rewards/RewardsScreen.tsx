@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,6 @@ import {
   fetchLeaderboard,
 } from '../../redux/slices/gamificationSlice';
 import { Card } from '../../components/common/Card';
-import { useTheme } from '../../contexts/ThemeContext';
 
 const BADGE_CATEGORY_LABELS: Record<BadgeCategory, string> = {
   attendance: 'Attendance',
@@ -58,7 +57,6 @@ type TabKey = 'badges' | 'xp' | 'milestones';
 
 export const RewardsScreen: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const theme = useTheme();
   const { badgeCatalog, isLoadingCatalog, xpGuide } = useSelector(
     (state: RootState) => state.gamification,
   );
@@ -79,310 +77,6 @@ export const RewardsScreen: React.FC = () => {
   const earnedCount = badgeCatalog.filter((b) => b.earned).length;
   const currentStreak = streak?.currentStreak ?? 0;
 
-  const styles = useMemo(() => StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.secondaryColor,
-    },
-    header: {
-      padding: spacing.base,
-      paddingTop: spacing.lg,
-      alignItems: 'center',
-    },
-    title: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size['2xl'],
-      color: theme.textPrimary,
-      letterSpacing: fonts.letterSpacing.wide * 32,
-    },
-    tabBar: {
-      flexDirection: 'row',
-      paddingHorizontal: spacing.base,
-      gap: spacing.sm,
-      marginBottom: spacing.md,
-    },
-    tab: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: spacing.xs,
-      paddingVertical: spacing.sm,
-      borderRadius: borderRadius.lg,
-      backgroundColor: theme.surfaceColor,
-      borderWidth: 1,
-      borderColor: colors.borderDark,
-    },
-    tabActive: {
-      backgroundColor: theme.primaryColor + '26',
-      borderColor: theme.primaryColor,
-    },
-    tabText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      fontWeight: fonts.weight.semibold,
-      color: theme.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: fonts.letterSpacing.wider * 11,
-    },
-    tabTextActive: {
-      color: theme.primaryColor,
-    },
-    scrollContent: {
-      padding: spacing.base,
-      paddingBottom: spacing['3xl'],
-    },
-    // Summary
-    summaryRow: {
-      flexDirection: 'row',
-      gap: spacing.md,
-      marginBottom: spacing.md,
-    },
-    summaryCard: {
-      flex: 1,
-      alignItems: 'center',
-      paddingVertical: spacing.md,
-    },
-    summaryValue: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size['2xl'],
-      color: theme.primaryColor,
-    },
-    summaryLabel: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      fontWeight: fonts.weight.semibold,
-      color: theme.textMuted,
-      letterSpacing: fonts.letterSpacing.wider * 11,
-      marginTop: 2,
-    },
-    // Category chips
-    categoryScroll: {
-      gap: spacing.sm,
-      paddingBottom: spacing.md,
-    },
-    categoryChip: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-      paddingVertical: spacing.xs,
-      paddingHorizontal: spacing.md,
-      borderRadius: borderRadius.full,
-      backgroundColor: theme.surfaceColor,
-      borderWidth: 1,
-      borderColor: colors.borderDark,
-    },
-    categoryChipActive: {
-      backgroundColor: theme.primaryColor + '26',
-      borderColor: theme.primaryColor,
-    },
-    categoryChipText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      fontWeight: fonts.weight.medium,
-      color: theme.textMuted,
-    },
-    categoryChipTextActive: {
-      color: theme.primaryColor,
-    },
-    // Badge Grid
-    badgeGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: spacing.sm,
-    },
-    badgeGridItem: {
-      width: '48%',
-    },
-    badgeCard: {
-      backgroundColor: theme.surfaceColor,
-      borderRadius: borderRadius.xl,
-      borderWidth: 1,
-      borderColor: colors.borderDark,
-      padding: spacing.md,
-      alignItems: 'center',
-      minHeight: 140,
-    },
-    badgeCardEarned: {
-      borderColor: theme.primaryColor,
-      borderWidth: 2,
-    },
-    badgeCardLocked: {
-      opacity: 0.5,
-    },
-    badgeIconContainer: {
-      marginBottom: spacing.sm,
-    },
-    badgeName: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      fontWeight: fonts.weight.semibold,
-      color: theme.textPrimary,
-      textAlign: 'center',
-      marginBottom: 4,
-    },
-    badgeNameLocked: {
-      color: theme.textMuted,
-    },
-    badgeDescription: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      color: theme.textMuted,
-      textAlign: 'center',
-      lineHeight: 16,
-    },
-    badgeDate: {
-      fontFamily: 'Inter',
-      fontSize: 10,
-      color: theme.primaryColor,
-      textTransform: 'uppercase',
-      letterSpacing: fonts.letterSpacing.wider * 10,
-      marginTop: spacing.xs,
-    },
-    badgeLocked: {
-      fontFamily: 'Inter',
-      fontSize: 10,
-      color: theme.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: fonts.letterSpacing.wider * 10,
-      marginTop: spacing.xs,
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: spacing['3xl'],
-    },
-    emptyContainer: {
-      width: '100%',
-      alignItems: 'center',
-      paddingVertical: spacing['3xl'],
-      gap: spacing.md,
-    },
-    emptyText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      color: theme.textMuted,
-    },
-    // XP Guide
-    xpContainer: {
-      gap: spacing.md,
-    },
-    xpCard: {
-      gap: spacing.md,
-    },
-    sectionTitle: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size.lg,
-      color: theme.textPrimary,
-      letterSpacing: fonts.letterSpacing.wide * 18,
-    },
-    xpRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: spacing.sm,
-    },
-    xpRowBorder: {
-      borderBottomWidth: 1,
-      borderBottomColor: colors.borderDark,
-    },
-    xpRowLeft: {
-      flex: 1,
-      marginRight: spacing.md,
-    },
-    xpAction: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      fontWeight: fonts.weight.semibold,
-      color: theme.textPrimary,
-    },
-    xpDescription: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      color: theme.textMuted,
-      marginTop: 2,
-    },
-    xpValue: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size.lg,
-      color: theme.primaryColor,
-    },
-    multiplierValue: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size.lg,
-      color: theme.primaryColor,
-    },
-    // Milestones
-    milestonesContainer: {
-      gap: spacing.sm,
-    },
-    milestoneCard: {
-      gap: spacing.sm,
-    },
-    milestoneCardAchieved: {
-      borderColor: theme.primaryColor,
-      borderWidth: 2,
-    },
-    milestoneRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-    },
-    milestoneIconCircle: {
-      width: 48,
-      height: 48,
-      borderRadius: borderRadius.full,
-      backgroundColor: theme.surfaceColor,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: colors.borderDark,
-    },
-    milestoneIconCircleAchieved: {
-      backgroundColor: theme.primaryColor + '26',
-      borderColor: theme.primaryColor,
-    },
-    milestoneInfo: {
-      flex: 1,
-    },
-    milestoneName: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      fontWeight: fonts.weight.semibold,
-      color: theme.textPrimary,
-    },
-    milestoneNameAchieved: {
-      color: theme.primaryColor,
-    },
-    milestoneReward: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      color: theme.textMuted,
-      marginTop: 2,
-    },
-    milestoneProgress: {
-      marginLeft: 48 + 16,
-      gap: 4,
-    },
-    milestoneProgressBar: {
-      height: 6,
-      backgroundColor: theme.surfaceColor,
-      borderRadius: borderRadius.full,
-      overflow: 'hidden',
-    },
-    milestoneProgressFill: {
-      height: '100%',
-      backgroundColor: theme.primaryColor,
-      borderRadius: borderRadius.full,
-    },
-    milestoneProgressText: {
-      fontFamily: 'Inter',
-      fontSize: 10,
-      color: theme.textMuted,
-    },
-  }), [theme]);
-
   const renderBadge = ({ item }: { item: BadgeCatalogEntry }) => (
     <View
       style={[
@@ -395,7 +89,7 @@ export const RewardsScreen: React.FC = () => {
         <Ionicons
           name={item.earned ? 'shield-checkmark' : 'lock-closed'}
           size={32}
-          color={item.earned ? theme.primaryColor : theme.textMuted}
+          color={item.earned ? colors.warmAccent : colors.steel}
         />
       </View>
       <Text style={[styles.badgeName, !item.earned && styles.badgeNameLocked]} numberOfLines={2}>
@@ -465,7 +159,7 @@ export const RewardsScreen: React.FC = () => {
             <Ionicons
               name={BADGE_CATEGORY_ICONS[cat] as never}
               size={14}
-              color={selectedCategory === cat ? theme.primaryColor : theme.textMuted}
+              color={selectedCategory === cat ? colors.warmAccent : colors.steel}
             />
             <Text
               style={[
@@ -482,7 +176,7 @@ export const RewardsScreen: React.FC = () => {
       {/* Badge Grid */}
       {isLoadingCatalog ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.primaryColor} />
+          <ActivityIndicator size="large" color={colors.warmAccent} />
         </View>
       ) : (
         <View style={styles.badgeGrid}>
@@ -493,7 +187,7 @@ export const RewardsScreen: React.FC = () => {
           ))}
           {filteredBadges.length === 0 && (
             <View style={styles.emptyContainer}>
-              <Ionicons name="ribbon-outline" size={48} color={theme.textMuted} />
+              <Ionicons name="ribbon-outline" size={48} color={colors.steel} />
               <Text style={styles.emptyText}>No badges in this category yet.</Text>
             </View>
           )}
@@ -524,7 +218,7 @@ export const RewardsScreen: React.FC = () => {
           ))
         ) : (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={theme.primaryColor} />
+            <ActivityIndicator size="small" color={colors.warmAccent} />
           </View>
         )}
       </Card>
@@ -569,7 +263,7 @@ export const RewardsScreen: React.FC = () => {
                 <Ionicons
                   name={milestone.icon as never}
                   size={24}
-                  color={achieved ? theme.primaryColor : theme.textMuted}
+                  color={achieved ? colors.warmAccent : colors.steel}
                 />
               </View>
               <View style={styles.milestoneInfo}>
@@ -586,7 +280,7 @@ export const RewardsScreen: React.FC = () => {
               <Ionicons
                 name={achieved ? 'checkmark-circle' : 'lock-closed'}
                 size={24}
-                color={achieved ? colors.success : theme.textMuted}
+                color={achieved ? colors.success : colors.steel}
               />
             </View>
             {!achieved && (
@@ -642,7 +336,7 @@ export const RewardsScreen: React.FC = () => {
             <Ionicons
               name={tab.icon as never}
               size={16}
-              color={activeTab === tab.key ? theme.primaryColor : theme.textMuted}
+              color={activeTab === tab.key ? colors.warmAccent : colors.steel}
             />
             <Text
               style={[
@@ -668,3 +362,307 @@ export const RewardsScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.charcoal,
+  },
+  header: {
+    padding: spacing.base,
+    paddingTop: spacing.lg,
+    alignItems: 'center',
+  },
+  title: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size['2xl'],
+    color: colors.offWhite,
+    letterSpacing: fonts.letterSpacing.wide * 32,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.base,
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.darkGrey,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  tabActive: {
+    backgroundColor: 'rgba(201, 168, 124, 0.15)',
+    borderColor: colors.warmAccent,
+  },
+  tabText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.semibold,
+    color: colors.steel,
+    textTransform: 'uppercase',
+    letterSpacing: fonts.letterSpacing.wider * 11,
+  },
+  tabTextActive: {
+    color: colors.warmAccent,
+  },
+  scrollContent: {
+    padding: spacing.base,
+    paddingBottom: spacing['3xl'],
+  },
+  // Summary
+  summaryRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginBottom: spacing.md,
+  },
+  summaryCard: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+  },
+  summaryValue: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size['2xl'],
+    color: colors.warmAccent,
+  },
+  summaryLabel: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.semibold,
+    color: colors.steel,
+    letterSpacing: fonts.letterSpacing.wider * 11,
+    marginTop: 2,
+  },
+  // Category chips
+  categoryScroll: {
+    gap: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.darkGrey,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  categoryChipActive: {
+    backgroundColor: 'rgba(201, 168, 124, 0.15)',
+    borderColor: colors.warmAccent,
+  },
+  categoryChipText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.medium,
+    color: colors.steel,
+  },
+  categoryChipTextActive: {
+    color: colors.warmAccent,
+  },
+  // Badge Grid
+  badgeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  badgeGridItem: {
+    width: '48%',
+  },
+  badgeCard: {
+    backgroundColor: colors.darkGrey,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+    padding: spacing.md,
+    alignItems: 'center',
+    minHeight: 140,
+  },
+  badgeCardEarned: {
+    borderColor: colors.warmAccent,
+    borderWidth: 2,
+  },
+  badgeCardLocked: {
+    opacity: 0.5,
+  },
+  badgeIconContainer: {
+    marginBottom: spacing.sm,
+  },
+  badgeName: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.semibold,
+    color: colors.offWhite,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  badgeNameLocked: {
+    color: colors.steel,
+  },
+  badgeDescription: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.steel,
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  badgeDate: {
+    fontFamily: 'Inter',
+    fontSize: 10,
+    color: colors.warmAccent,
+    textTransform: 'uppercase',
+    letterSpacing: fonts.letterSpacing.wider * 10,
+    marginTop: spacing.xs,
+  },
+  badgeLocked: {
+    fontFamily: 'Inter',
+    fontSize: 10,
+    color: colors.steel,
+    textTransform: 'uppercase',
+    letterSpacing: fonts.letterSpacing.wider * 10,
+    marginTop: spacing.xs,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: spacing['3xl'],
+  },
+  emptyContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: spacing['3xl'],
+    gap: spacing.md,
+  },
+  emptyText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    color: colors.steel,
+  },
+  // XP Guide
+  xpContainer: {
+    gap: spacing.md,
+  },
+  xpCard: {
+    gap: spacing.md,
+  },
+  sectionTitle: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.lg,
+    color: colors.offWhite,
+    letterSpacing: fonts.letterSpacing.wide * 18,
+  },
+  xpRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  xpRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderDark,
+  },
+  xpRowLeft: {
+    flex: 1,
+    marginRight: spacing.md,
+  },
+  xpAction: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.semibold,
+    color: colors.offWhite,
+  },
+  xpDescription: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.steel,
+    marginTop: 2,
+  },
+  xpValue: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.lg,
+    color: colors.warmAccent,
+  },
+  multiplierValue: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.lg,
+    color: colors.warmAccent,
+  },
+  // Milestones
+  milestonesContainer: {
+    gap: spacing.sm,
+  },
+  milestoneCard: {
+    gap: spacing.sm,
+  },
+  milestoneCardAchieved: {
+    borderColor: colors.warmAccent,
+    borderWidth: 2,
+  },
+  milestoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  milestoneIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.darkGrey,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  milestoneIconCircleAchieved: {
+    backgroundColor: 'rgba(201, 168, 124, 0.15)',
+    borderColor: colors.warmAccent,
+  },
+  milestoneInfo: {
+    flex: 1,
+  },
+  milestoneName: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    fontWeight: fonts.weight.semibold,
+    color: colors.offWhite,
+  },
+  milestoneNameAchieved: {
+    color: colors.warmAccent,
+  },
+  milestoneReward: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.steel,
+    marginTop: 2,
+  },
+  milestoneProgress: {
+    marginLeft: 48 + 16,
+    gap: 4,
+  },
+  milestoneProgressBar: {
+    height: 6,
+    backgroundColor: colors.darkGrey,
+    borderRadius: borderRadius.full,
+    overflow: 'hidden',
+  },
+  milestoneProgressFill: {
+    height: '100%',
+    backgroundColor: colors.warmAccent,
+    borderRadius: borderRadius.full,
+  },
+  milestoneProgressText: {
+    fontFamily: 'Inter',
+    fontSize: 10,
+    color: colors.steel,
+  },
+});

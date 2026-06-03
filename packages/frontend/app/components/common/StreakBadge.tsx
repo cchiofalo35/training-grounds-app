@@ -1,10 +1,7 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing } from '@training-grounds/shared';
-import { useTheme } from '../../contexts/ThemeContext';
-
-const FLAME_COLOR = '#FF6B35';
+import { colors, fonts, spacing } from '@training-grounds/shared';
 
 interface StreakBadgeProps {
   count: number;
@@ -17,48 +14,15 @@ export const StreakBadge: React.FC<StreakBadgeProps> = ({
   isActive,
   size = 'small',
 }) => {
-  const theme = useTheme();
   const isLarge = size === 'large';
-  const accentColor = isActive ? theme.primaryColor : theme.textMuted;
-
-  const styles = useMemo(() => StyleSheet.create({
-    container: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.xs,
-    },
-    containerLarge: {
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: 2,
-    },
-    textContainer: {
-      flexDirection: 'row',
-      alignItems: 'baseline',
-      gap: 4,
-    },
-    count: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size.lg,
-    },
-    countLarge: {
-      fontSize: fonts.size['2xl'],
-    },
-    label: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-    },
-    labelLarge: {
-      fontSize: fonts.size.sm,
-    },
-  }), [theme]);
+  const accentColor = isActive ? colors.warmAccent : colors.steel;
 
   return (
     <View style={[styles.container, isLarge && styles.containerLarge]}>
       <Ionicons
         name="flame"
         size={isLarge ? 28 : 18}
-        color={isActive ? FLAME_COLOR : theme.textMuted}
+        color={isActive ? '#FF6B35' : colors.steel}
       />
       <View style={styles.textContainer}>
         <Text
@@ -74,7 +38,7 @@ export const StreakBadge: React.FC<StreakBadgeProps> = ({
           style={[
             styles.label,
             isLarge && styles.labelLarge,
-            { color: isActive ? theme.textMuted : theme.textMuted },
+            { color: isActive ? colors.textLight : colors.steel },
           ]}
         >
           day streak
@@ -83,3 +47,35 @@ export const StreakBadge: React.FC<StreakBadgeProps> = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  containerLarge: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 2,
+  },
+  textContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
+  },
+  count: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.lg,
+  },
+  countLarge: {
+    fontSize: fonts.size['2xl'],
+  },
+  label: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+  },
+  labelLarge: {
+    fontSize: fonts.size.sm,
+  },
+});

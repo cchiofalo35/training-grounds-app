@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -25,7 +25,6 @@ import {
 } from '../../redux/slices/journalSlice';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
-import { useTheme } from '../../contexts/ThemeContext';
 
 const DISCIPLINE_LABELS: Record<Discipline, string> = {
   'bjj-gi': 'BJJ Gi',
@@ -35,11 +34,6 @@ const DISCIPLINE_LABELS: Record<Discipline, string> = {
   mma: 'MMA',
   boxing: 'Boxing',
   'open-mat': 'Open Mat',
-  crossfit: 'CrossFit',
-  'crossfit-kids': 'CrossFit Kids',
-  weightlifting: 'Weightlifting',
-  hyrox: 'HYROX',
-  'open-gym': 'Open Gym',
 };
 
 const JOURNAL_PROMPTS = [
@@ -64,7 +58,6 @@ const formatDate = (dateStr: string): string => {
 export const JournalScreen: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch<AppDispatch>();
-  const theme = useTheme();
   const { entries, isLoading, isSaving } = useSelector(
     (state: RootState) => state.journal,
   );
@@ -133,223 +126,6 @@ export const JournalScreen: React.FC = () => {
     ]);
   };
 
-  const styles = useMemo(() => StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.secondaryColor,
-    },
-    flex: {
-      flex: 1,
-    },
-    // List view
-    listHeaderBar: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: spacing.base,
-      paddingTop: spacing.sm,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.borderDark,
-    },
-    backBtn: {
-      padding: spacing.xs,
-    },
-    listHeaderTitles: {
-      flex: 1,
-      alignItems: 'center',
-      gap: 2,
-    },
-    headerSpacer: {
-      width: 40,
-    },
-    listHeader: {
-      padding: spacing.base,
-      paddingTop: spacing.lg,
-      alignItems: 'center',
-      gap: spacing.xs,
-    },
-    screenTitle: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size['2xl'],
-      color: theme.textPrimary,
-      letterSpacing: fonts.letterSpacing.wide * 32,
-    },
-    subtitle: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textMuted,
-      fontStyle: 'italic',
-    },
-    newEntryButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: theme.primaryColor,
-      borderRadius: borderRadius.xl,
-      padding: spacing.base,
-      marginHorizontal: spacing.base,
-      marginBottom: spacing.md,
-      gap: spacing.md,
-    },
-    newEntryTextContainer: {
-      flex: 1,
-    },
-    newEntryTitle: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size.lg,
-      color: theme.secondaryColor,
-      letterSpacing: fonts.letterSpacing.wide * 20,
-    },
-    newEntrySubtext: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      color: 'rgba(30, 30, 30, 0.7)',
-    },
-    entryList: {
-      padding: spacing.base,
-      gap: spacing.sm,
-      paddingBottom: spacing['3xl'],
-    },
-    entryCard: {
-      gap: spacing.sm,
-      marginBottom: spacing.sm,
-    },
-    entryHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    entryDateRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.xs,
-    },
-    entryDate: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.primaryColor,
-      fontWeight: fonts.weight.semibold as any,
-    },
-    entryClassName: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      color: theme.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: fonts.letterSpacing.wider * 11,
-    },
-    entryExploration: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      color: theme.textPrimary,
-      lineHeight: 22,
-    },
-    entryTakeaway: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.xs,
-      backgroundColor: theme.primaryColor + '14',
-      padding: spacing.sm,
-      borderRadius: borderRadius.md,
-    },
-    entryTakeawayText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textPrimary,
-      flex: 1,
-    },
-    sharedBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-      alignSelf: 'flex-start',
-    },
-    sharedBadgeText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      color: theme.primaryColor,
-    },
-    emptyState: {
-      alignItems: 'center',
-      gap: spacing.sm,
-      paddingVertical: spacing.xl,
-    },
-    emptyTitle: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size.xl,
-      color: theme.textPrimary,
-    },
-    emptyText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textMuted,
-      textAlign: 'center',
-      lineHeight: 20,
-      paddingHorizontal: spacing.lg,
-    },
-    // Create form
-    formScroll: {
-      padding: spacing.base,
-      paddingBottom: spacing['3xl'],
-      gap: spacing.md,
-    },
-    formHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: spacing.sm,
-    },
-    classInfoCard: {
-      gap: spacing.sm,
-    },
-    classInfoLabel: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      color: theme.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: fonts.letterSpacing.widest * 11,
-    },
-    promptCard: {
-      gap: spacing.sm,
-    },
-    promptHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.sm,
-    },
-    promptLabel: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      fontWeight: fonts.weight.semibold as any,
-      color: theme.textPrimary,
-    },
-    input: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      color: theme.textPrimary,
-      backgroundColor: theme.secondaryColor,
-      borderRadius: borderRadius.md,
-      padding: spacing.sm,
-      borderWidth: 1,
-      borderColor: colors.borderDark,
-    },
-    textArea: {
-      minHeight: 80,
-      textAlignVertical: 'top',
-    },
-    coachToggle: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.sm,
-      paddingVertical: spacing.sm,
-    },
-    coachToggleText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      color: theme.textPrimary,
-    },
-    saveButton: {
-      marginTop: spacing.md,
-    },
-  }), [theme]);
-
   if (viewMode === 'create') {
     return (
       <SafeAreaView style={styles.container}>
@@ -361,7 +137,7 @@ export const JournalScreen: React.FC = () => {
             {/* Header */}
             <View style={styles.formHeader}>
               <Pressable onPress={() => setViewMode('list')}>
-                <Ionicons name="arrow-back" size={24} color={theme.primaryColor} />
+                <Ionicons name="arrow-back" size={24} color={colors.warmAccent} />
               </Pressable>
               <Text style={styles.screenTitle}>NEW ENTRY</Text>
               <View style={{ width: 24 }} />
@@ -373,7 +149,7 @@ export const JournalScreen: React.FC = () => {
               <TextInput
                 style={styles.input}
                 placeholder="e.g. Morning BJJ Fundamentals"
-                placeholderTextColor={theme.textMuted}
+                placeholderTextColor={colors.textMuted}
                 value={form.className}
                 onChangeText={(t) => setForm({ ...form, className: t })}
               />
@@ -383,13 +159,13 @@ export const JournalScreen: React.FC = () => {
             {JOURNAL_PROMPTS.map((prompt) => (
               <Card key={prompt.key} style={styles.promptCard}>
                 <View style={styles.promptHeader}>
-                  <Ionicons name={prompt.icon} size={20} color={theme.primaryColor} />
+                  <Ionicons name={prompt.icon} size={20} color={colors.warmAccent} />
                   <Text style={styles.promptLabel}>{prompt.label}</Text>
                 </View>
                 <TextInput
                   style={[styles.input, styles.textArea]}
                   placeholder="Write your thoughts..."
-                  placeholderTextColor={theme.textMuted}
+                  placeholderTextColor={colors.textMuted}
                   multiline
                   numberOfLines={3}
                   textAlignVertical="top"
@@ -409,7 +185,7 @@ export const JournalScreen: React.FC = () => {
               <Ionicons
                 name={form.isSharedWithCoach ? 'checkbox' : 'square-outline'}
                 size={24}
-                color={form.isSharedWithCoach ? theme.primaryColor : theme.textMuted}
+                color={form.isSharedWithCoach ? colors.warmAccent : colors.steel}
               />
               <Text style={styles.coachToggleText}>Share with my coach</Text>
             </Pressable>
@@ -439,12 +215,12 @@ export const JournalScreen: React.FC = () => {
         ]}
         onPress={() => setViewMode('create')}
       >
-        <Ionicons name="add-circle" size={28} color={theme.secondaryColor} />
+        <Ionicons name="add-circle" size={28} color={colors.charcoal} />
         <View style={styles.newEntryTextContainer}>
           <Text style={styles.newEntryTitle}>NEW JOURNAL ENTRY</Text>
           <Text style={styles.newEntrySubtext}>Record today's training reflections</Text>
         </View>
-        <Ionicons name="arrow-forward" size={24} color={theme.secondaryColor} />
+        <Ionicons name="arrow-forward" size={24} color={colors.charcoal} />
       </Pressable>
 
       <FlatList
@@ -454,7 +230,7 @@ export const JournalScreen: React.FC = () => {
         ListEmptyComponent={
           <Card>
             <View style={styles.emptyState}>
-              <Ionicons name="journal-outline" size={48} color={theme.textMuted} />
+              <Ionicons name="journal-outline" size={48} color={colors.steel} />
               <Text style={styles.emptyTitle}>No entries yet</Text>
               <Text style={styles.emptyText}>
                 Start journaling after your next training session to track your progress.
@@ -466,11 +242,11 @@ export const JournalScreen: React.FC = () => {
           <Card style={styles.entryCard}>
             <View style={styles.entryHeader}>
               <View style={styles.entryDateRow}>
-                <Ionicons name="calendar-outline" size={16} color={theme.primaryColor} />
+                <Ionicons name="calendar-outline" size={16} color={colors.warmAccent} />
                 <Text style={styles.entryDate}>{formatDate(item.createdAt)}</Text>
               </View>
               <Pressable onPress={() => handleDelete(item.id)}>
-                <Ionicons name="trash-outline" size={18} color={theme.textMuted} />
+                <Ionicons name="trash-outline" size={18} color={colors.steel} />
               </Pressable>
             </View>
 
@@ -487,7 +263,7 @@ export const JournalScreen: React.FC = () => {
 
             {item.takeaways ? (
               <View style={styles.entryTakeaway}>
-                <Ionicons name="bulb-outline" size={14} color={theme.primaryColor} />
+                <Ionicons name="bulb-outline" size={14} color={colors.warmAccent} />
                 <Text style={styles.entryTakeawayText} numberOfLines={1}>
                   {item.takeaways}
                 </Text>
@@ -496,7 +272,7 @@ export const JournalScreen: React.FC = () => {
 
             {item.isSharedWithCoach && (
               <View style={styles.sharedBadge}>
-                <Ionicons name="people-outline" size={12} color={theme.primaryColor} />
+                <Ionicons name="people-outline" size={12} color={colors.warmAccent} />
                 <Text style={styles.sharedBadgeText}>Shared with coach</Text>
               </View>
             )}
@@ -506,3 +282,220 @@ export const JournalScreen: React.FC = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.charcoal,
+  },
+  flex: {
+    flex: 1,
+  },
+  // List view
+  listHeaderBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.base,
+    paddingTop: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderDark,
+  },
+  backBtn: {
+    padding: spacing.xs,
+  },
+  listHeaderTitles: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 2,
+  },
+  headerSpacer: {
+    width: 40,
+  },
+  listHeader: {
+    padding: spacing.base,
+    paddingTop: spacing.lg,
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  screenTitle: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size['2xl'],
+    color: colors.offWhite,
+    letterSpacing: fonts.letterSpacing.wide * 32,
+  },
+  subtitle: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.steel,
+    fontStyle: 'italic',
+  },
+  newEntryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.warmAccent,
+    borderRadius: borderRadius.xl,
+    padding: spacing.base,
+    marginHorizontal: spacing.base,
+    marginBottom: spacing.md,
+    gap: spacing.md,
+  },
+  newEntryTextContainer: {
+    flex: 1,
+  },
+  newEntryTitle: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.lg,
+    color: colors.charcoal,
+    letterSpacing: fonts.letterSpacing.wide * 20,
+  },
+  newEntrySubtext: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: 'rgba(30, 30, 30, 0.7)',
+  },
+  entryList: {
+    padding: spacing.base,
+    gap: spacing.sm,
+    paddingBottom: spacing['3xl'],
+  },
+  entryCard: {
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  entryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  entryDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  entryDate: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.warmAccent,
+    fontWeight: fonts.weight.semibold as any,
+  },
+  entryClassName: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.steel,
+    textTransform: 'uppercase',
+    letterSpacing: fonts.letterSpacing.wider * 11,
+  },
+  entryExploration: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    color: colors.offWhite,
+    lineHeight: 22,
+  },
+  entryTakeaway: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: 'rgba(201, 168, 124, 0.08)',
+    padding: spacing.sm,
+    borderRadius: borderRadius.md,
+  },
+  entryTakeawayText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.offWhite,
+    flex: 1,
+  },
+  sharedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+  },
+  sharedBadgeText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.warmAccent,
+  },
+  emptyState: {
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.xl,
+  },
+  emptyTitle: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.xl,
+    color: colors.offWhite,
+  },
+  emptyText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.steel,
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: spacing.lg,
+  },
+  // Create form
+  formScroll: {
+    padding: spacing.base,
+    paddingBottom: spacing['3xl'],
+    gap: spacing.md,
+  },
+  formHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  classInfoCard: {
+    gap: spacing.sm,
+  },
+  classInfoLabel: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.steel,
+    textTransform: 'uppercase',
+    letterSpacing: fonts.letterSpacing.widest * 11,
+  },
+  promptCard: {
+    gap: spacing.sm,
+  },
+  promptHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  promptLabel: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.semibold as any,
+    color: colors.offWhite,
+  },
+  input: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    color: colors.offWhite,
+    backgroundColor: colors.charcoal,
+    borderRadius: borderRadius.md,
+    padding: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  textArea: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  coachToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  coachToggleText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    color: colors.offWhite,
+  },
+  saveButton: {
+    marginTop: spacing.md,
+  },
+});

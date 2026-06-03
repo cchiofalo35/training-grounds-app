@@ -1,11 +1,10 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 import { colors } from '@training-grounds/shared';
 import type { RootState } from '../redux/store';
-import { useTheme } from '../contexts/ThemeContext';
 import { DashboardScreen } from '../screens/dashboard/DashboardScreen';
 import { CheckInScreen } from '../screens/checkin/CheckInScreen';
 import { LeaderboardScreen } from '../screens/leaderboard/LeaderboardScreen';
@@ -34,7 +33,7 @@ const TAB_ICONS: Record<string, { active: IoniconsName; inactive: IoniconsName }
 };
 
 const HeaderRight = () => (
-  <View style={{ marginRight: 16 }}>
+  <View style={styles.headerRight}>
     <ProfileAvatar size={34} />
   </View>
 );
@@ -42,35 +41,6 @@ const HeaderRight = () => (
 export const MainTabs: React.FC = () => {
   const userRole = useSelector((state: RootState) => state.auth.user?.role);
   const isCoachOrAdmin = userRole === 'coach' || userRole === 'admin';
-  const theme = useTheme();
-
-  const styles = useMemo(() => StyleSheet.create({
-    header: {
-      backgroundColor: theme.secondaryColor,
-      shadowColor: 'transparent',
-      elevation: 0,
-      borderBottomWidth: 0,
-    },
-    headerTitle: {
-      fontFamily: 'BebasNeue',
-      fontSize: 20,
-      color: theme.textPrimary,
-      letterSpacing: 1.5,
-    },
-    tabBar: {
-      backgroundColor: theme.secondaryColor,
-      borderTopColor: colors.borderDark,
-      borderTopWidth: 1,
-      height: 85,
-      paddingTop: 8,
-      paddingBottom: 20,
-    },
-    tabLabel: {
-      fontFamily: 'Inter',
-      fontSize: 10,
-      fontWeight: '500' as const,
-    },
-  }), [theme]);
 
   return (
     <Tab.Navigator
@@ -78,11 +48,11 @@ export const MainTabs: React.FC = () => {
         headerShown: true,
         headerStyle: styles.header,
         headerTitleStyle: styles.headerTitle,
-        headerTintColor: theme.textPrimary,
+        headerTintColor: colors.offWhite,
         headerRight: () => <HeaderRight />,
         tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: theme.primaryColor,
-        tabBarInactiveTintColor: theme.textMuted,
+        tabBarActiveTintColor: colors.warmAccent,
+        tabBarInactiveTintColor: colors.steel,
         tabBarLabelStyle: styles.tabLabel,
         tabBarIcon: ({ focused, color, size }) => {
           const icons = TAB_ICONS[route.name] ?? TAB_ICONS.Dashboard;
@@ -124,3 +94,34 @@ export const MainTabs: React.FC = () => {
     </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  header: {
+    backgroundColor: colors.charcoal,
+    shadowColor: 'transparent',
+    elevation: 0,
+    borderBottomWidth: 0,
+  },
+  headerTitle: {
+    fontFamily: 'BebasNeue',
+    fontSize: 20,
+    color: colors.offWhite,
+    letterSpacing: 1.5,
+  },
+  headerRight: {
+    marginRight: 16,
+  },
+  tabBar: {
+    backgroundColor: colors.charcoal,
+    borderTopColor: colors.borderDark,
+    borderTopWidth: 1,
+    height: 85,
+    paddingTop: 8,
+    paddingBottom: 20,
+  },
+  tabLabel: {
+    fontFamily: 'Inter',
+    fontSize: 10,
+    fontWeight: '500' as const,
+  },
+});

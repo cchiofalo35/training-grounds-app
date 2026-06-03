@@ -12,8 +12,6 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { store } from './app/redux/store';
-import { ThemeProvider } from './app/contexts/ThemeContext';
-import { GymProvider } from './app/contexts/GymContext';
 import { RootNavigator } from './app/navigation/RootNavigator';
 
 // Keep splash screen visible while fonts load
@@ -40,16 +38,12 @@ const App: React.FC = () => {
 
   return (
     <Provider store={store}>
-      <ThemeProvider>
-        <GymProvider>
-          <View style={styles.root} onLayout={onLayoutRootView}>
-            <NavigationContainer>
-              <StatusBar barStyle="light-content" backgroundColor="#1E1E1E" />
-              <RootNavigator />
-            </NavigationContainer>
-          </View>
-        </GymProvider>
-      </ThemeProvider>
+      <View style={styles.root} onLayout={onLayoutRootView}>
+        <NavigationContainer>
+          <StatusBar barStyle="light-content" backgroundColor="#1E1E1E" />
+          <RootNavigator />
+        </NavigationContainer>
+      </View>
     </Provider>
   );
 };

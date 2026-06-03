@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,6 @@ import {
 } from '../../redux/slices/gamificationSlice';
 import { Card } from '../../components/common/Card';
 import { BeltDisplay } from '../../components/common/BeltDisplay';
-import { useTheme } from '../../contexts/ThemeContext';
 
 const LEAGUE_TABS: { key: LeagueType; label: string; color: string }[] = [
   { key: 'bronze', label: 'Bronze', color: colors.league.bronze },
@@ -46,7 +45,6 @@ const RANK_COLORS: Record<number, string> = {
 
 export const LeaderboardScreen: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const theme = useTheme();
   const { leaderboard, selectedLeague, selectedPeriod, isLoadingLeaderboard } = useSelector(
     (state: RootState) => state.gamification,
   );
@@ -63,188 +61,6 @@ export const LeaderboardScreen: React.FC = () => {
   const handlePeriodChange = (period: LeaderboardPeriod) => {
     dispatch(setSelectedPeriod(period));
   };
-
-  const styles = useMemo(() => StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.secondaryColor,
-    },
-    header: {
-      padding: spacing.base,
-      paddingTop: spacing.lg,
-      alignItems: 'center',
-    },
-    title: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size['2xl'],
-      color: theme.textPrimary,
-      letterSpacing: fonts.letterSpacing.wide * 32,
-    },
-    periodContainer: {
-      flexDirection: 'row',
-      paddingHorizontal: spacing.base,
-      gap: spacing.sm,
-      marginBottom: spacing.md,
-    },
-    periodTab: {
-      flex: 1,
-      paddingVertical: spacing.sm,
-      borderRadius: borderRadius.lg,
-      backgroundColor: theme.surfaceColor,
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: colors.borderDark,
-    },
-    periodTabActive: {
-      backgroundColor: theme.primaryColor + '26',
-      borderColor: theme.primaryColor,
-    },
-    periodText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      fontWeight: fonts.weight.semibold,
-      color: theme.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: fonts.letterSpacing.wider * 11,
-    },
-    periodTextActive: {
-      color: theme.primaryColor,
-    },
-    tabsContainer: {
-      paddingHorizontal: spacing.base,
-      gap: spacing.sm,
-      paddingBottom: spacing.md,
-    },
-    tab: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.xs,
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.md,
-      borderBottomWidth: 2,
-      borderBottomColor: 'transparent',
-    },
-    tabActive: {
-      borderBottomWidth: 2,
-    },
-    tabDot: {
-      width: 8,
-      height: 8,
-      borderRadius: borderRadius.full,
-    },
-    tabDotBlack: {
-      borderWidth: 1,
-      borderColor: theme.textPrimary,
-    },
-    tabText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textMuted,
-      fontWeight: fonts.weight.medium,
-    },
-    tabTextActive: {
-      color: theme.textPrimary,
-      fontWeight: fonts.weight.semibold,
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    listContent: {
-      padding: spacing.base,
-      gap: spacing.sm,
-    },
-    entryCard: {
-      marginBottom: spacing.sm,
-    },
-    currentUserCard: {
-      borderColor: theme.primaryColor,
-      borderWidth: 1,
-    },
-    topThreeCard: {
-      backgroundColor: theme.primaryColor + '14',
-    },
-    entryRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-    },
-    rankContainer: {
-      width: 36,
-      alignItems: 'center',
-    },
-    rankNumber: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size.lg,
-      color: theme.textMuted,
-    },
-    avatar: {
-      width: 40,
-      height: 40,
-      borderRadius: borderRadius.full,
-      backgroundColor: theme.surfaceColor,
-      borderWidth: 2,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    avatarText: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size.md,
-      color: theme.textPrimary,
-    },
-    entryInfo: {
-      flex: 1,
-      gap: 2,
-    },
-    entryName: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      fontWeight: fonts.weight.semibold,
-      color: theme.textPrimary,
-    },
-    currentUserName: {
-      color: theme.primaryColor,
-    },
-    entryXp: {
-      alignItems: 'flex-end',
-    },
-    xpValue: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size.lg,
-      color: theme.textPrimary,
-    },
-    xpValueGold: {
-      color: theme.primaryColor,
-    },
-    xpLabel: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      color: theme.textMuted,
-    },
-    rankChange: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      fontWeight: fonts.weight.bold,
-      marginTop: 2,
-    },
-    rankUp: {
-      color: colors.success,
-    },
-    rankDown: {
-      color: colors.error,
-    },
-    emptyContainer: {
-      alignItems: 'center',
-      paddingVertical: spacing['3xl'],
-      gap: spacing.md,
-    },
-    emptyText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      color: theme.textMuted,
-    },
-  }), [theme]);
 
   const renderEntry = ({ item }: { item: LeaderboardEntry }) => {
     const isCurrentUser = item.userId === currentUserId;
@@ -273,7 +89,7 @@ export const LeaderboardScreen: React.FC = () => {
           <View
             style={[
               styles.avatar,
-              { borderColor: isTopThree ? theme.primaryColor : colors.borderDark },
+              { borderColor: isTopThree ? colors.warmAccent : colors.borderDark },
             ]}
           >
             <Text style={styles.avatarText}>
@@ -392,7 +208,7 @@ export const LeaderboardScreen: React.FC = () => {
       {/* List */}
       {isLoadingLeaderboard ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.primaryColor} />
+          <ActivityIndicator size="large" color={colors.warmAccent} />
         </View>
       ) : (
         <FlatList
@@ -402,7 +218,7 @@ export const LeaderboardScreen: React.FC = () => {
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="trophy-outline" size={48} color={theme.textMuted} />
+              <Ionicons name="trophy-outline" size={48} color={colors.steel} />
               <Text style={styles.emptyText}>
                 No entries yet for this league.
               </Text>
@@ -413,3 +229,185 @@ export const LeaderboardScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.charcoal,
+  },
+  header: {
+    padding: spacing.base,
+    paddingTop: spacing.lg,
+    alignItems: 'center',
+  },
+  title: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size['2xl'],
+    color: colors.offWhite,
+    letterSpacing: fonts.letterSpacing.wide * 32,
+  },
+  periodContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.base,
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  periodTab: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.darkGrey,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  periodTabActive: {
+    backgroundColor: 'rgba(201, 168, 124, 0.15)',
+    borderColor: colors.warmAccent,
+  },
+  periodText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.semibold,
+    color: colors.steel,
+    textTransform: 'uppercase',
+    letterSpacing: fonts.letterSpacing.wider * 11,
+  },
+  periodTextActive: {
+    color: colors.warmAccent,
+  },
+  tabsContainer: {
+    paddingHorizontal: spacing.base,
+    gap: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  tab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabActive: {
+    borderBottomWidth: 2,
+  },
+  tabDot: {
+    width: 8,
+    height: 8,
+    borderRadius: borderRadius.full,
+  },
+  tabDotBlack: {
+    borderWidth: 1,
+    borderColor: colors.offWhite,
+  },
+  tabText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.steel,
+    fontWeight: fonts.weight.medium,
+  },
+  tabTextActive: {
+    color: colors.offWhite,
+    fontWeight: fonts.weight.semibold,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  listContent: {
+    padding: spacing.base,
+    gap: spacing.sm,
+  },
+  entryCard: {
+    marginBottom: spacing.sm,
+  },
+  currentUserCard: {
+    borderColor: colors.warmAccent,
+    borderWidth: 1,
+  },
+  topThreeCard: {
+    backgroundColor: 'rgba(201, 168, 124, 0.08)',
+  },
+  entryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  rankContainer: {
+    width: 36,
+    alignItems: 'center',
+  },
+  rankNumber: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.lg,
+    color: colors.steel,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.darkGrey,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.md,
+    color: colors.offWhite,
+  },
+  entryInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  entryName: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    fontWeight: fonts.weight.semibold,
+    color: colors.offWhite,
+  },
+  currentUserName: {
+    color: colors.warmAccent,
+  },
+  entryXp: {
+    alignItems: 'flex-end',
+  },
+  xpValue: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.lg,
+    color: colors.offWhite,
+  },
+  xpValueGold: {
+    color: colors.warmAccent,
+  },
+  xpLabel: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.steel,
+  },
+  rankChange: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.bold,
+    marginTop: 2,
+  },
+  rankUp: {
+    color: colors.success,
+  },
+  rankDown: {
+    color: colors.error,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing['3xl'],
+    gap: spacing.md,
+  },
+  emptyText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    color: colors.steel,
+  },
+});

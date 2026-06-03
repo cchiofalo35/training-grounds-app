@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,6 @@ import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
 import type { Discipline } from '@training-grounds/shared';
 import type { RootState } from '../../redux/store';
 import { Card } from '../../components/common/Card';
-import { useTheme } from '../../contexts/ThemeContext';
 import api from '../../services/api';
 
 interface MemberResult {
@@ -44,11 +43,6 @@ const DISCIPLINE_LABELS: Record<Discipline, string> = {
   mma: 'MMA',
   boxing: 'Boxing',
   'open-mat': 'Open Mat',
-  crossfit: 'CrossFit',
-  'crossfit-kids': 'CrossFit Kids',
-  weightlifting: 'Weightlifting',
-  hyrox: 'HYROX',
-  'open-gym': 'Open Gym',
 };
 
 const BELT_COLORS: Record<string, string> = {
@@ -63,7 +57,6 @@ type CoachMode = 'search' | 'selectClass' | 'confirm' | 'success';
 
 export const CoachCheckinScreen: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user);
-  const theme = useTheme();
 
   const [mode, setMode] = useState<CoachMode>('search');
   const [searchQuery, setSearchQuery] = useState('');
@@ -158,377 +151,13 @@ export const CoachCheckinScreen: React.FC = () => {
     setLastCheckedIn(null);
   };
 
-  const styles = useMemo(() => StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.secondaryColor,
-    },
-
-    // Header
-    header: {
-      alignItems: 'center',
-      gap: spacing.xs,
-      paddingTop: spacing.lg,
-      paddingBottom: spacing.base,
-    },
-    headerTitle: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size['2xl'],
-      color: theme.textPrimary,
-      letterSpacing: fonts.letterSpacing.wide * 32,
-    },
-    headerSubtext: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textMuted,
-    },
-
-    // Search
-    searchContainer: {
-      flex: 1,
-      padding: spacing.base,
-    },
-    searchInputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: theme.surfaceColor,
-      borderRadius: borderRadius.xl,
-      paddingHorizontal: spacing.base,
-      paddingVertical: spacing.md,
-      marginBottom: spacing.base,
-      borderWidth: 1,
-      borderColor: colors.borderDark,
-    },
-    searchIcon: {
-      marginRight: spacing.sm,
-    },
-    searchInput: {
-      flex: 1,
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      color: theme.textPrimary,
-    },
-    loader: {
-      marginVertical: spacing.base,
-    },
-    resultsList: {
-      gap: spacing.sm,
-      paddingBottom: spacing['3xl'],
-    },
-    noResults: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textMuted,
-      textAlign: 'center',
-      marginTop: spacing.xl,
-    },
-    hintContainer: {
-      alignItems: 'center',
-      marginTop: spacing['3xl'],
-      gap: spacing.md,
-    },
-    hintText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textMuted,
-    },
-
-    // Member Card
-    memberCard: {
-      marginBottom: spacing.sm,
-    },
-    memberRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-    },
-    beltDot: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.2)',
-    },
-    beltDotSmall: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.2)',
-    },
-    memberInfo: {
-      flex: 1,
-      gap: 2,
-    },
-    memberName: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      fontWeight: fonts.weight.semibold,
-      color: theme.textPrimary,
-    },
-    memberEmail: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      color: theme.textMuted,
-    },
-    memberStats: {
-      alignItems: 'flex-end',
-      gap: 2,
-    },
-    memberXp: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      fontWeight: fonts.weight.bold,
-      color: theme.primaryColor,
-    },
-    memberStreak: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      color: theme.textMuted,
-    },
-
-    // Select Class
-    selectClassContainer: {
-      flex: 1,
-      padding: spacing.base,
-    },
-    backRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.xs,
-      marginBottom: spacing.base,
-    },
-    backText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      color: theme.primaryColor,
-    },
-    sectionTitle: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size.xl,
-      color: theme.textPrimary,
-      letterSpacing: fonts.letterSpacing.wide * 24,
-      marginBottom: spacing.sm,
-    },
-    selectedMemberPill: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.sm,
-      backgroundColor: theme.primaryColor + '1A',
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.base,
-      borderRadius: borderRadius.full,
-      alignSelf: 'flex-start',
-      marginBottom: spacing.xl,
-    },
-    selectedMemberName: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      fontWeight: fonts.weight.semibold,
-      color: theme.primaryColor,
-    },
-    classListContent: {
-      gap: spacing.sm,
-      paddingBottom: spacing['3xl'],
-    },
-    classCard: {
-      marginBottom: spacing.sm,
-    },
-    classRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    classInfo: {
-      flex: 1,
-      gap: 2,
-    },
-    className: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      fontWeight: fonts.weight.semibold,
-      color: theme.textPrimary,
-    },
-    classDiscipline: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textMuted,
-    },
-    emptyCard: {
-      alignItems: 'center',
-      gap: spacing.md,
-      paddingVertical: spacing['2xl'],
-    },
-    emptyText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textMuted,
-      textAlign: 'center',
-    },
-    manualClassButton: {
-      backgroundColor: theme.primaryColor,
-      paddingVertical: spacing.md,
-      paddingHorizontal: spacing.xl,
-      borderRadius: borderRadius.xl,
-      marginTop: spacing.sm,
-    },
-    manualClassText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      fontWeight: fonts.weight.semibold,
-      color: theme.secondaryColor,
-    },
-
-    // Confirm
-    confirmContainer: {
-      flex: 1,
-      padding: spacing.base,
-      justifyContent: 'center',
-    },
-    confirmTitle: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size['2xl'],
-      color: theme.textPrimary,
-      textAlign: 'center',
-      letterSpacing: fonts.letterSpacing.wide * 32,
-      marginBottom: spacing.xl,
-    },
-    confirmCard: {
-      gap: spacing.md,
-      marginBottom: spacing.xl,
-    },
-    confirmMemberRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-    },
-    confirmMemberName: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.md,
-      fontWeight: fonts.weight.bold,
-      color: theme.textPrimary,
-    },
-    confirmMemberEmail: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textMuted,
-    },
-    confirmDivider: {
-      height: 1,
-      backgroundColor: colors.borderDark,
-    },
-    confirmClassLabel: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      color: theme.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: fonts.letterSpacing.widest * 11,
-    },
-    confirmClassName: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.lg,
-      fontWeight: fonts.weight.semibold,
-      color: theme.textPrimary,
-    },
-    confirmDiscipline: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.primaryColor,
-    },
-    checkInButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: theme.primaryColor,
-      borderRadius: borderRadius.xl,
-      paddingVertical: spacing.base,
-      gap: spacing.sm,
-      marginBottom: spacing.md,
-    },
-    checkInButtonText: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size.lg,
-      color: theme.secondaryColor,
-      letterSpacing: fonts.letterSpacing.wide * 20,
-    },
-    cancelText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      color: theme.textMuted,
-      textAlign: 'center',
-    },
-
-    // Success
-    successContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: spacing['2xl'],
-      gap: spacing.md,
-    },
-    successIconCircle: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: colors.success,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: spacing.md,
-    },
-    successTitle: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size['3xl'],
-      color: colors.success,
-      letterSpacing: fonts.letterSpacing.wide * 40,
-    },
-    successName: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xl,
-      fontWeight: fonts.weight.bold,
-      color: theme.textPrimary,
-    },
-    successClass: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      color: theme.textMuted,
-    },
-    successXpBadge: {
-      backgroundColor: theme.primaryColor + '26',
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.xl,
-      borderRadius: borderRadius.full,
-      marginTop: spacing.sm,
-    },
-    successXpText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.lg,
-      fontWeight: fonts.weight.bold,
-      color: theme.primaryColor,
-    },
-    anotherButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: theme.primaryColor,
-      borderRadius: borderRadius.xl,
-      paddingVertical: spacing.base,
-      paddingHorizontal: spacing['2xl'],
-      gap: spacing.sm,
-      marginTop: spacing.xl,
-    },
-    anotherButtonText: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size.lg,
-      color: theme.secondaryColor,
-      letterSpacing: fonts.letterSpacing.wide * 20,
-    },
-  }), [theme]);
-
   // ─── Success Screen ───
   if (mode === 'success' && lastCheckedIn) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.successContainer}>
           <View style={styles.successIconCircle}>
-            <Ionicons name="checkmark" size={48} color={theme.secondaryColor} />
+            <Ionicons name="checkmark" size={48} color={colors.charcoal} />
           </View>
           <Text style={styles.successTitle}>CHECKED IN!</Text>
           <Text style={styles.successName}>{lastCheckedIn.member}</Text>
@@ -541,7 +170,7 @@ export const CoachCheckinScreen: React.FC = () => {
             style={({ pressed }) => [styles.anotherButton, { opacity: pressed ? 0.85 : 1 }]}
             onPress={handleReset}
           >
-            <Ionicons name="person-add" size={20} color={theme.secondaryColor} />
+            <Ionicons name="person-add" size={20} color={colors.charcoal} />
             <Text style={styles.anotherButtonText}>Check In Another</Text>
           </Pressable>
         </View>
@@ -555,7 +184,7 @@ export const CoachCheckinScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.confirmContainer}>
           <Pressable onPress={() => setMode('selectClass')} style={styles.backRow}>
-            <Ionicons name="arrow-back" size={20} color={theme.primaryColor} />
+            <Ionicons name="arrow-back" size={20} color={colors.warmAccent} />
             <Text style={styles.backText}>Back</Text>
           </Pressable>
 
@@ -584,10 +213,10 @@ export const CoachCheckinScreen: React.FC = () => {
             disabled={checkingIn}
           >
             {checkingIn ? (
-              <ActivityIndicator color={theme.secondaryColor} />
+              <ActivityIndicator color={colors.charcoal} />
             ) : (
               <>
-                <Ionicons name="checkmark-circle" size={24} color={theme.secondaryColor} />
+                <Ionicons name="checkmark-circle" size={24} color={colors.charcoal} />
                 <Text style={styles.checkInButtonText}>Confirm Check-In</Text>
               </>
             )}
@@ -607,7 +236,7 @@ export const CoachCheckinScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.selectClassContainer}>
           <Pressable onPress={() => { setMode('search'); setSelectedMember(null); }} style={styles.backRow}>
-            <Ionicons name="arrow-back" size={20} color={theme.primaryColor} />
+            <Ionicons name="arrow-back" size={20} color={colors.warmAccent} />
             <Text style={styles.backText}>Back</Text>
           </Pressable>
 
@@ -620,7 +249,7 @@ export const CoachCheckinScreen: React.FC = () => {
           <ScrollView contentContainerStyle={styles.classListContent}>
             {todayClasses.length === 0 ? (
               <Card style={styles.emptyCard}>
-                <Ionicons name="calendar-outline" size={32} color={theme.textMuted} />
+                <Ionicons name="calendar-outline" size={32} color={colors.steel} />
                 <Text style={styles.emptyText}>No classes scheduled for today.</Text>
                 <Pressable
                   style={({ pressed }) => [styles.manualClassButton, { opacity: pressed ? 0.85 : 1 }]}
@@ -644,7 +273,7 @@ export const CoachCheckinScreen: React.FC = () => {
                           {cls.startTime ? ` · ${cls.startTime}` : ''}
                         </Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+                      <Ionicons name="chevron-forward" size={20} color={colors.steel} />
                     </View>
                   </Card>
                 </Pressable>
@@ -661,18 +290,18 @@ export const CoachCheckinScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.searchContainer}>
         <View style={styles.header}>
-          <Ionicons name="people" size={24} color={theme.primaryColor} />
+          <Ionicons name="people" size={24} color={colors.warmAccent} />
           <Text style={styles.headerTitle}>COACH CHECK-IN</Text>
           <Text style={styles.headerSubtext}>Search for a member to check them in</Text>
         </View>
 
         {/* Search Input */}
         <View style={styles.searchInputContainer}>
-          <Ionicons name="search" size={18} color={theme.textMuted} style={styles.searchIcon} />
+          <Ionicons name="search" size={18} color={colors.steel} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search by name or email..."
-            placeholderTextColor={theme.textMuted}
+            placeholderTextColor={colors.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoCapitalize="none"
@@ -680,14 +309,14 @@ export const CoachCheckinScreen: React.FC = () => {
           />
           {searchQuery.length > 0 && (
             <Pressable onPress={() => { setSearchQuery(''); setSearchResults([]); }}>
-              <Ionicons name="close-circle" size={18} color={theme.textMuted} />
+              <Ionicons name="close-circle" size={18} color={colors.steel} />
             </Pressable>
           )}
         </View>
 
         {/* Results */}
         {searching && (
-          <ActivityIndicator color={theme.primaryColor} style={styles.loader} />
+          <ActivityIndicator color={colors.warmAccent} style={styles.loader} />
         )}
 
         <FlatList
@@ -717,7 +346,7 @@ export const CoachCheckinScreen: React.FC = () => {
                     <Text style={styles.memberXp}>{item.totalXp.toLocaleString()} XP</Text>
                     <Text style={styles.memberStreak}>{item.currentStreak}d streak</Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+                  <Ionicons name="chevron-forward" size={20} color={colors.steel} />
                 </View>
               </Card>
             </Pressable>
@@ -727,3 +356,367 @@ export const CoachCheckinScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.charcoal,
+  },
+
+  // Header
+  header: {
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.base,
+  },
+  headerTitle: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size['2xl'],
+    color: colors.offWhite,
+    letterSpacing: fonts.letterSpacing.wide * 32,
+  },
+  headerSubtext: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.steel,
+  },
+
+  // Search
+  searchContainer: {
+    flex: 1,
+    padding: spacing.base,
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.darkGrey,
+    borderRadius: borderRadius.xl,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.base,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+  },
+  searchIcon: {
+    marginRight: spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    color: colors.offWhite,
+  },
+  loader: {
+    marginVertical: spacing.base,
+  },
+  resultsList: {
+    gap: spacing.sm,
+    paddingBottom: spacing['3xl'],
+  },
+  noResults: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.steel,
+    textAlign: 'center',
+    marginTop: spacing.xl,
+  },
+  hintContainer: {
+    alignItems: 'center',
+    marginTop: spacing['3xl'],
+    gap: spacing.md,
+  },
+  hintText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.textMuted,
+  },
+
+  // Member Card
+  memberCard: {
+    marginBottom: spacing.sm,
+  },
+  memberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  beltDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  beltDotSmall: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  memberInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  memberName: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    fontWeight: fonts.weight.semibold,
+    color: colors.offWhite,
+  },
+  memberEmail: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.steel,
+  },
+  memberStats: {
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  memberXp: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.bold,
+    color: colors.warmAccent,
+  },
+  memberStreak: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.steel,
+  },
+
+  // Select Class
+  selectClassContainer: {
+    flex: 1,
+    padding: spacing.base,
+  },
+  backRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.base,
+  },
+  backText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    color: colors.warmAccent,
+  },
+  sectionTitle: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.xl,
+    color: colors.offWhite,
+    letterSpacing: fonts.letterSpacing.wide * 24,
+    marginBottom: spacing.sm,
+  },
+  selectedMemberPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: 'rgba(201, 168, 124, 0.1)',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.base,
+    borderRadius: borderRadius.full,
+    alignSelf: 'flex-start',
+    marginBottom: spacing.xl,
+  },
+  selectedMemberName: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.semibold,
+    color: colors.warmAccent,
+  },
+  classListContent: {
+    gap: spacing.sm,
+    paddingBottom: spacing['3xl'],
+  },
+  classCard: {
+    marginBottom: spacing.sm,
+  },
+  classRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  classInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  className: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    fontWeight: fonts.weight.semibold,
+    color: colors.offWhite,
+  },
+  classDiscipline: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.steel,
+  },
+  emptyCard: {
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing['2xl'],
+  },
+  emptyText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.steel,
+    textAlign: 'center',
+  },
+  manualClassButton: {
+    backgroundColor: colors.warmAccent,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: borderRadius.xl,
+    marginTop: spacing.sm,
+  },
+  manualClassText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.semibold,
+    color: colors.charcoal,
+  },
+
+  // Confirm
+  confirmContainer: {
+    flex: 1,
+    padding: spacing.base,
+    justifyContent: 'center',
+  },
+  confirmTitle: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size['2xl'],
+    color: colors.offWhite,
+    textAlign: 'center',
+    letterSpacing: fonts.letterSpacing.wide * 32,
+    marginBottom: spacing.xl,
+  },
+  confirmCard: {
+    gap: spacing.md,
+    marginBottom: spacing.xl,
+  },
+  confirmMemberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  confirmMemberName: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.md,
+    fontWeight: fonts.weight.bold,
+    color: colors.offWhite,
+  },
+  confirmMemberEmail: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.steel,
+  },
+  confirmDivider: {
+    height: 1,
+    backgroundColor: colors.borderDark,
+  },
+  confirmClassLabel: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.steel,
+    textTransform: 'uppercase',
+    letterSpacing: fonts.letterSpacing.widest * 11,
+  },
+  confirmClassName: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.lg,
+    fontWeight: fonts.weight.semibold,
+    color: colors.offWhite,
+  },
+  confirmDiscipline: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.warmAccent,
+  },
+  checkInButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.warmAccent,
+    borderRadius: borderRadius.xl,
+    paddingVertical: spacing.base,
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  checkInButtonText: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.lg,
+    color: colors.charcoal,
+    letterSpacing: fonts.letterSpacing.wide * 20,
+  },
+  cancelText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    color: colors.steel,
+    textAlign: 'center',
+  },
+
+  // Success
+  successContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing['2xl'],
+    gap: spacing.md,
+  },
+  successIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.success,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  successTitle: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size['3xl'],
+    color: colors.success,
+    letterSpacing: fonts.letterSpacing.wide * 40,
+  },
+  successName: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xl,
+    fontWeight: fonts.weight.bold,
+    color: colors.offWhite,
+  },
+  successClass: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    color: colors.steel,
+  },
+  successXpBadge: {
+    backgroundColor: 'rgba(201, 168, 124, 0.15)',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    borderRadius: borderRadius.full,
+    marginTop: spacing.sm,
+  },
+  successXpText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.lg,
+    fontWeight: fonts.weight.bold,
+    color: colors.warmAccent,
+  },
+  anotherButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.warmAccent,
+    borderRadius: borderRadius.xl,
+    paddingVertical: spacing.base,
+    paddingHorizontal: spacing['2xl'],
+    gap: spacing.sm,
+    marginTop: spacing.xl,
+  },
+  anotherButtonText: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.lg,
+    color: colors.charcoal,
+    letterSpacing: fonts.letterSpacing.wide * 20,
+  },
+});

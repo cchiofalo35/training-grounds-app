@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,6 @@ import type { AppDispatch, RootState } from '../../redux/store';
 import { checkIn, type CheckInData } from '../../redux/slices/attendanceSlice';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
-import { useTheme } from '../../contexts/ThemeContext';
 import api from '../../services/api';
 
 const DISCIPLINE_LABELS: Record<Discipline, string> = {
@@ -30,11 +29,6 @@ const DISCIPLINE_LABELS: Record<Discipline, string> = {
   mma: 'MMA',
   boxing: 'Boxing',
   'open-mat': 'Open Mat',
-  crossfit: 'CrossFit',
-  'crossfit-kids': 'CrossFit Kids',
-  weightlifting: 'Weightlifting',
-  hyrox: 'HYROX',
-  'open-gym': 'Open Gym',
 };
 
 const DISCIPLINE_COLORS: Record<string, string> = {
@@ -45,11 +39,6 @@ const DISCIPLINE_COLORS: Record<string, string> = {
   mma: '#10B981',
   boxing: '#EF4444',
   'open-mat': '#6B7280',
-  crossfit: '#409EFF',
-  'crossfit-kids': '#34D399',
-  weightlifting: '#F97316',
-  hyrox: '#FBBF24',
-  'open-gym': '#6B7280',
 };
 
 interface TodayClass {
@@ -75,7 +64,6 @@ type CheckInMode = 'classes' | 'scan' | 'confirm' | 'success';
 export const CheckInScreen: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { isCheckingIn } = useSelector((state: RootState) => state.attendance);
-  const theme = useTheme();
 
   const [permission, requestPermission] = useCameraPermissions();
   const [mode, setMode] = useState<CheckInMode>('classes');
@@ -146,348 +134,13 @@ export const CheckInScreen: React.FC = () => {
     setLastCheckedIn(null);
   };
 
-  const styles = useMemo(() => StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.secondaryColor,
-    },
-    classesContent: {
-      padding: spacing.base,
-      paddingBottom: spacing['3xl'],
-    },
-
-    // QR Button
-    qrButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: theme.primaryColor,
-      borderRadius: borderRadius.xl,
-      paddingVertical: spacing.md,
-      gap: spacing.sm,
-    },
-    qrButtonText: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size.md,
-      color: theme.secondaryColor,
-      letterSpacing: fonts.letterSpacing.wide * 18,
-    },
-
-    // Divider
-    dividerRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginVertical: spacing.lg,
-      gap: spacing.md,
-    },
-    dividerLine: {
-      flex: 1,
-      height: 1,
-      backgroundColor: colors.borderDark,
-    },
-    dividerText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      color: theme.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: fonts.letterSpacing.wider * 11,
-    },
-
-    // Today label
-    todayLabel: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      fontWeight: fonts.weight.semibold,
-      color: theme.textMuted,
-      letterSpacing: fonts.letterSpacing.widest * 11,
-      marginBottom: spacing.md,
-    },
-
-    // Class Cards
-    classCard: {
-      marginBottom: spacing.sm,
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.sm,
-    },
-    classRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-    },
-    classAccent: {
-      width: 4,
-      height: 48,
-      borderRadius: 2,
-    },
-    classInfo: {
-      flex: 1,
-      gap: 3,
-    },
-    className: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      fontWeight: fonts.weight.semibold,
-      color: theme.textPrimary,
-    },
-    classDetails: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.xs,
-    },
-    classDiscipline: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      fontWeight: fonts.weight.medium,
-    },
-    classDot: {
-      color: theme.textMuted,
-      fontSize: fonts.size.sm,
-    },
-    classInstructor: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textMuted,
-    },
-    classFooter: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 2,
-    },
-    classTime: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      color: theme.textMuted,
-    },
-    classLevel: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.xs,
-      color: theme.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: fonts.letterSpacing.widest * 11,
-    },
-
-    // Empty state
-    emptyCard: {
-      alignItems: 'center',
-      gap: spacing.md,
-      paddingVertical: spacing['2xl'],
-    },
-    emptyTitle: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size.xl,
-      color: theme.textPrimary,
-    },
-    emptyText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textMuted,
-      textAlign: 'center',
-    },
-
-    // Back row
-    backRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.xs,
-      marginBottom: spacing.base,
-    },
-    backText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      color: theme.primaryColor,
-    },
-
-    // Scanner
-    scannerContainer: {
-      flex: 1,
-    },
-    scannerHeader: {
-      padding: spacing.base,
-    },
-    cameraWrapper: {
-      flex: 1,
-      margin: spacing.base,
-      borderRadius: borderRadius.xl,
-      overflow: 'hidden',
-      position: 'relative',
-    },
-    camera: {
-      flex: 1,
-    },
-    overlay: {
-      ...StyleSheet.absoluteFillObject,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    },
-    scanFrame: {
-      width: 220,
-      height: 220,
-      position: 'relative',
-    },
-    scanText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textPrimary,
-      marginTop: spacing.lg,
-    },
-    corner: {
-      position: 'absolute',
-      width: 30,
-      height: 30,
-      borderColor: theme.primaryColor,
-    },
-    cornerTL: { top: 0, left: 0, borderTopWidth: 3, borderLeftWidth: 3 },
-    cornerTR: { top: 0, right: 0, borderTopWidth: 3, borderRightWidth: 3 },
-    cornerBL: { bottom: 0, left: 0, borderBottomWidth: 3, borderLeftWidth: 3 },
-    cornerBR: { bottom: 0, right: 0, borderBottomWidth: 3, borderRightWidth: 3 },
-
-    // Permission
-    permissionContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: spacing['2xl'],
-      gap: spacing.base,
-    },
-    permissionTitle: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size['2xl'],
-      color: theme.textPrimary,
-    },
-    permissionText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      color: theme.textMuted,
-      textAlign: 'center',
-      lineHeight: 22,
-    },
-    permissionButton: {
-      width: '100%',
-      marginTop: spacing.md,
-    },
-
-    // Confirm
-    confirmContainer: {
-      flex: 1,
-      padding: spacing.base,
-    },
-    confirmContent: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: spacing.lg,
-    },
-    confirmTitle: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size['2xl'],
-      color: theme.textPrimary,
-      letterSpacing: fonts.letterSpacing.wide * 32,
-    },
-    confirmCard: {
-      width: '100%',
-      alignItems: 'center',
-      gap: spacing.xs,
-    },
-    confirmClassName: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.lg,
-      fontWeight: fonts.weight.bold,
-      color: theme.textPrimary,
-    },
-    confirmDiscipline: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      color: theme.primaryColor,
-    },
-    confirmInstructor: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textMuted,
-    },
-    confirmTime: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textMuted,
-    },
-    confirmButton: {
-      width: '100%',
-    },
-    cancelText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.base,
-      color: theme.textMuted,
-      marginTop: spacing.md,
-    },
-
-    // Success
-    successContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: spacing['2xl'],
-      gap: spacing.md,
-    },
-    successIconCircle: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: colors.success,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: spacing.md,
-    },
-    successTitle: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size['3xl'],
-      color: colors.success,
-      letterSpacing: fonts.letterSpacing.wide * 40,
-    },
-    successClass: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.lg,
-      color: theme.textPrimary,
-    },
-    successXpBadge: {
-      backgroundColor: theme.primaryColor + '26',
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.xl,
-      borderRadius: borderRadius.full,
-    },
-    successXpText: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.lg,
-      fontWeight: fonts.weight.bold,
-      color: theme.primaryColor,
-    },
-    successMotivation: {
-      fontFamily: 'Inter',
-      fontSize: fonts.size.sm,
-      color: theme.textMuted,
-      fontStyle: 'italic',
-    },
-    doneButton: {
-      backgroundColor: theme.primaryColor,
-      borderRadius: borderRadius.xl,
-      paddingVertical: spacing.base,
-      paddingHorizontal: spacing['3xl'],
-      marginTop: spacing.xl,
-    },
-    doneButtonText: {
-      fontFamily: 'BebasNeue',
-      fontSize: fonts.size.lg,
-      color: theme.secondaryColor,
-      letterSpacing: fonts.letterSpacing.wide * 20,
-    },
-  }), [theme]);
-
   // ─── Success Screen ───
   if (mode === 'success' && lastCheckedIn) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.successContainer}>
           <View style={styles.successIconCircle}>
-            <Ionicons name="checkmark" size={48} color={theme.secondaryColor} />
+            <Ionicons name="checkmark" size={48} color={colors.charcoal} />
           </View>
           <Text style={styles.successTitle}>CHECKED IN!</Text>
           <Text style={styles.successClass}>{lastCheckedIn.className}</Text>
@@ -513,7 +166,7 @@ export const CheckInScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.confirmContainer}>
           <Pressable onPress={() => setMode(selectedClass ? 'classes' : 'scan')} style={styles.backRow}>
-            <Ionicons name="arrow-back" size={20} color={theme.primaryColor} />
+            <Ionicons name="arrow-back" size={20} color={colors.warmAccent} />
             <Text style={styles.backText}>Back</Text>
           </Pressable>
 
@@ -569,10 +222,10 @@ export const CheckInScreen: React.FC = () => {
         <SafeAreaView style={styles.container}>
           <View style={styles.permissionContainer}>
             <Pressable onPress={() => setMode('classes')} style={styles.backRow}>
-              <Ionicons name="arrow-back" size={20} color={theme.primaryColor} />
+              <Ionicons name="arrow-back" size={20} color={colors.warmAccent} />
               <Text style={styles.backText}>Back to classes</Text>
             </Pressable>
-            <Ionicons name="camera-outline" size={48} color={theme.primaryColor} />
+            <Ionicons name="camera-outline" size={48} color={colors.warmAccent} />
             <Text style={styles.permissionTitle}>Camera Access</Text>
             <Text style={styles.permissionText}>
               We need camera access to scan the class QR code.
@@ -593,7 +246,7 @@ export const CheckInScreen: React.FC = () => {
         <View style={styles.scannerContainer}>
           <View style={styles.scannerHeader}>
             <Pressable onPress={() => setMode('classes')} style={styles.backRow}>
-              <Ionicons name="arrow-back" size={20} color={theme.primaryColor} />
+              <Ionicons name="arrow-back" size={20} color={colors.warmAccent} />
               <Text style={styles.backText}>Back to classes</Text>
             </Pressable>
           </View>
@@ -629,7 +282,7 @@ export const CheckInScreen: React.FC = () => {
           style={({ pressed }) => [styles.qrButton, { opacity: pressed ? 0.85 : 1 }]}
           onPress={() => setMode('scan')}
         >
-          <Ionicons name="qr-code" size={22} color={theme.secondaryColor} />
+          <Ionicons name="qr-code" size={22} color={colors.charcoal} />
           <Text style={styles.qrButtonText}>SCAN QR CODE</Text>
         </Pressable>
 
@@ -646,16 +299,16 @@ export const CheckInScreen: React.FC = () => {
         </Text>
 
         {loading ? (
-          <ActivityIndicator color={theme.primaryColor} style={{ marginTop: spacing.xl }} />
+          <ActivityIndicator color={colors.warmAccent} style={{ marginTop: spacing.xl }} />
         ) : todayClasses.length === 0 ? (
           <Card style={styles.emptyCard}>
-            <Ionicons name="calendar-outline" size={40} color={theme.textMuted} />
+            <Ionicons name="calendar-outline" size={40} color={colors.steel} />
             <Text style={styles.emptyTitle}>No classes today</Text>
             <Text style={styles.emptyText}>Check back tomorrow or scan a QR code to check in.</Text>
           </Card>
         ) : (
           todayClasses.map((cls) => {
-            const discColor = DISCIPLINE_COLORS[cls.discipline] || theme.primaryColor;
+            const discColor = DISCIPLINE_COLORS[cls.discipline] || colors.warmAccent;
             return (
               <Pressable
                 key={cls.id}
@@ -689,7 +342,7 @@ export const CheckInScreen: React.FC = () => {
                         )}
                       </View>
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color={theme.textMuted} />
+                    <Ionicons name="chevron-forward" size={20} color={colors.steel} />
                   </View>
                 </Card>
               </Pressable>
@@ -700,3 +353,338 @@ export const CheckInScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.charcoal,
+  },
+  classesContent: {
+    padding: spacing.base,
+    paddingBottom: spacing['3xl'],
+  },
+
+  // QR Button
+  qrButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.warmAccent,
+    borderRadius: borderRadius.xl,
+    paddingVertical: spacing.md,
+    gap: spacing.sm,
+  },
+  qrButtonText: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.md,
+    color: colors.charcoal,
+    letterSpacing: fonts.letterSpacing.wide * 18,
+  },
+
+  // Divider
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: spacing.lg,
+    gap: spacing.md,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.borderDark,
+  },
+  dividerText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: fonts.letterSpacing.wider * 11,
+  },
+
+  // Today label
+  todayLabel: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    fontWeight: fonts.weight.semibold,
+    color: colors.steel,
+    letterSpacing: fonts.letterSpacing.widest * 11,
+    marginBottom: spacing.md,
+  },
+
+  // Class Cards
+  classCard: {
+    marginBottom: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+  },
+  classRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  classAccent: {
+    width: 4,
+    height: 48,
+    borderRadius: 2,
+  },
+  classInfo: {
+    flex: 1,
+    gap: 3,
+  },
+  className: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    fontWeight: fonts.weight.semibold,
+    color: colors.offWhite,
+  },
+  classDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  classDiscipline: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    fontWeight: fonts.weight.medium,
+  },
+  classDot: {
+    color: colors.steel,
+    fontSize: fonts.size.sm,
+  },
+  classInstructor: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.steel,
+  },
+  classFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 2,
+  },
+  classTime: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.textMuted,
+  },
+  classLevel: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.xs,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: fonts.letterSpacing.widest * 11,
+  },
+
+  // Empty state
+  emptyCard: {
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing['2xl'],
+  },
+  emptyTitle: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.xl,
+    color: colors.offWhite,
+  },
+  emptyText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.steel,
+    textAlign: 'center',
+  },
+
+  // Back row
+  backRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.base,
+  },
+  backText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    color: colors.warmAccent,
+  },
+
+  // Scanner
+  scannerContainer: {
+    flex: 1,
+  },
+  scannerHeader: {
+    padding: spacing.base,
+  },
+  cameraWrapper: {
+    flex: 1,
+    margin: spacing.base,
+    borderRadius: borderRadius.xl,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  camera: {
+    flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  scanFrame: {
+    width: 220,
+    height: 220,
+    position: 'relative',
+  },
+  scanText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.offWhite,
+    marginTop: spacing.lg,
+  },
+  corner: {
+    position: 'absolute',
+    width: 30,
+    height: 30,
+    borderColor: colors.warmAccent,
+  },
+  cornerTL: { top: 0, left: 0, borderTopWidth: 3, borderLeftWidth: 3 },
+  cornerTR: { top: 0, right: 0, borderTopWidth: 3, borderRightWidth: 3 },
+  cornerBL: { bottom: 0, left: 0, borderBottomWidth: 3, borderLeftWidth: 3 },
+  cornerBR: { bottom: 0, right: 0, borderBottomWidth: 3, borderRightWidth: 3 },
+
+  // Permission
+  permissionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing['2xl'],
+    gap: spacing.base,
+  },
+  permissionTitle: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size['2xl'],
+    color: colors.offWhite,
+  },
+  permissionText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    color: colors.steel,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  permissionButton: {
+    width: '100%',
+    marginTop: spacing.md,
+  },
+
+  // Confirm
+  confirmContainer: {
+    flex: 1,
+    padding: spacing.base,
+  },
+  confirmContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.lg,
+  },
+  confirmTitle: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size['2xl'],
+    color: colors.offWhite,
+    letterSpacing: fonts.letterSpacing.wide * 32,
+  },
+  confirmCard: {
+    width: '100%',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  confirmClassName: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.lg,
+    fontWeight: fonts.weight.bold,
+    color: colors.offWhite,
+  },
+  confirmDiscipline: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    color: colors.warmAccent,
+  },
+  confirmInstructor: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.steel,
+  },
+  confirmTime: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.textMuted,
+  },
+  confirmButton: {
+    width: '100%',
+  },
+  cancelText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.base,
+    color: colors.steel,
+    marginTop: spacing.md,
+  },
+
+  // Success
+  successContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing['2xl'],
+    gap: spacing.md,
+  },
+  successIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.success,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  successTitle: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size['3xl'],
+    color: colors.success,
+    letterSpacing: fonts.letterSpacing.wide * 40,
+  },
+  successClass: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.lg,
+    color: colors.offWhite,
+  },
+  successXpBadge: {
+    backgroundColor: 'rgba(201, 168, 124, 0.15)',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    borderRadius: borderRadius.full,
+  },
+  successXpText: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.lg,
+    fontWeight: fonts.weight.bold,
+    color: colors.warmAccent,
+  },
+  successMotivation: {
+    fontFamily: 'Inter',
+    fontSize: fonts.size.sm,
+    color: colors.steel,
+    fontStyle: 'italic',
+  },
+  doneButton: {
+    backgroundColor: colors.warmAccent,
+    borderRadius: borderRadius.xl,
+    paddingVertical: spacing.base,
+    paddingHorizontal: spacing['3xl'],
+    marginTop: spacing.xl,
+  },
+  doneButtonText: {
+    fontFamily: 'BebasNeue',
+    fontSize: fonts.size.lg,
+    color: colors.charcoal,
+    letterSpacing: fonts.letterSpacing.wide * 20,
+  },
+});
