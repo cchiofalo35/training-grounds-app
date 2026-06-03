@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
 import type { BeltRank } from '@training-grounds/shared';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface BeltDisplayProps {
   belt: BeltRank;
@@ -22,8 +23,68 @@ export const BeltDisplay: React.FC<BeltDisplayProps> = ({
   stripes,
   size = 'small',
 }) => {
+  const theme = useTheme();
   const isLarge = size === 'large';
   const beltColor = colors.belt[belt];
+
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+    },
+    containerLarge: {
+      gap: spacing.md,
+    },
+    belt: {
+      width: 40,
+      height: 12,
+      borderRadius: borderRadius.sm,
+      justifyContent: 'center',
+      alignItems: 'flex-end',
+      paddingRight: 4,
+    },
+    beltLarge: {
+      width: 60,
+      height: 18,
+      borderRadius: borderRadius.md,
+      paddingRight: 6,
+    },
+    whiteBeltBorder: {
+      borderWidth: 1,
+      borderColor: colors.borderDark,
+    },
+    stripeContainer: {
+      flexDirection: 'row',
+      gap: 2,
+    },
+    stripe: {
+      width: 3,
+      height: 8,
+      borderRadius: 1,
+    },
+    stripeLarge: {
+      width: 4,
+      height: 12,
+      borderRadius: 2,
+    },
+    stripeActive: {
+      backgroundColor: theme.primaryColor,
+    },
+    stripeInactive: {
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    },
+    label: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      fontWeight: fonts.weight.medium,
+      color: theme.textMuted,
+    },
+    labelLarge: {
+      fontSize: fonts.size.base,
+      fontWeight: fonts.weight.semibold,
+    },
+  }), [theme]);
 
   return (
     <View style={[styles.container, isLarge && styles.containerLarge]}>
@@ -55,62 +116,3 @@ export const BeltDisplay: React.FC<BeltDisplayProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  containerLarge: {
-    gap: spacing.md,
-  },
-  belt: {
-    width: 40,
-    height: 12,
-    borderRadius: borderRadius.sm,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    paddingRight: 4,
-  },
-  beltLarge: {
-    width: 60,
-    height: 18,
-    borderRadius: borderRadius.md,
-    paddingRight: 6,
-  },
-  whiteBeltBorder: {
-    borderWidth: 1,
-    borderColor: colors.borderDark,
-  },
-  stripeContainer: {
-    flexDirection: 'row',
-    gap: 2,
-  },
-  stripe: {
-    width: 3,
-    height: 8,
-    borderRadius: 1,
-  },
-  stripeLarge: {
-    width: 4,
-    height: 12,
-    borderRadius: 2,
-  },
-  stripeActive: {
-    backgroundColor: colors.warmAccent,
-  },
-  stripeInactive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  label: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.sm,
-    fontWeight: fonts.weight.medium,
-    color: colors.textLight,
-  },
-  labelLarge: {
-    fontSize: fonts.size.base,
-    fontWeight: fonts.weight.semibold,
-  },
-});

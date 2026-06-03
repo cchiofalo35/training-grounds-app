@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import type { BeltRank } from '@training-grounds/shared';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../../components/common/Button';
 import type { AuthStackParamList } from '../../navigation/AuthStack';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type RegisterNavProp = NativeStackNavigationProp<AuthStackParamList, 'Register'>;
 
@@ -32,6 +33,7 @@ const BELT_OPTIONS: { value: BeltRank; label: string; color: string }[] = [
 
 export const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<RegisterNavProp>();
+  const theme = useTheme();
   const { register, signInWithApple, isLoading, error, dismissError } = useAuth();
   const [appleAvailable, setAppleAvailable] = useState(false);
 
@@ -64,6 +66,164 @@ export const RegisterScreen: React.FC = () => {
       // Error handled by Redux state
     }
   };
+
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.secondaryColor,
+    },
+    flex: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: spacing.xl,
+      paddingBottom: spacing['2xl'],
+    },
+    header: {
+      marginTop: spacing['2xl'],
+      marginBottom: spacing['2xl'],
+    },
+    backButton: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.base,
+      color: theme.primaryColor,
+      marginBottom: spacing.lg,
+    },
+    title: {
+      fontFamily: 'BebasNeue',
+      fontSize: fonts.size['3xl'],
+      color: theme.textPrimary,
+      letterSpacing: fonts.letterSpacing.wide * 40,
+    },
+    subtitle: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.base,
+      color: theme.textMuted,
+      marginTop: spacing.xs,
+    },
+    errorBanner: {
+      backgroundColor: 'rgba(229, 62, 62, 0.15)',
+      borderRadius: borderRadius.md,
+      padding: spacing.md,
+      marginBottom: spacing.base,
+      borderWidth: 1,
+      borderColor: 'rgba(229, 62, 62, 0.3)',
+    },
+    errorText: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      color: colors.error,
+      textAlign: 'center',
+    },
+    form: {
+      gap: spacing.base,
+    },
+    inputContainer: {
+      gap: spacing.xs,
+    },
+    inputLabel: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      fontWeight: fonts.weight.semibold,
+      color: theme.textMuted,
+      letterSpacing: fonts.letterSpacing.widest * 11,
+      textTransform: 'uppercase',
+    },
+    input: {
+      backgroundColor: theme.surfaceColor,
+      borderRadius: borderRadius.md,
+      borderWidth: 1,
+      borderColor: colors.borderDark,
+      paddingVertical: 14,
+      paddingHorizontal: spacing.base,
+      fontFamily: 'Inter',
+      fontSize: fonts.size.base,
+      color: theme.textPrimary,
+    },
+    beltPicker: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      flexWrap: 'wrap',
+    },
+    beltOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      backgroundColor: theme.surfaceColor,
+      borderRadius: borderRadius.md,
+      borderWidth: 1,
+      borderColor: colors.borderDark,
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+    },
+    beltOptionSelected: {
+      borderColor: theme.primaryColor,
+      backgroundColor: theme.primaryColor + '1A',
+    },
+    beltSwatch: {
+      width: 16,
+      height: 8,
+      borderRadius: 2,
+    },
+    beltSwatchWhite: {
+      borderWidth: 1,
+      borderColor: theme.textMuted,
+    },
+    beltSwatchBlack: {
+      borderWidth: 1,
+      borderColor: colors.borderDark,
+    },
+    beltLabel: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      color: theme.textMuted,
+      fontWeight: fonts.weight.medium,
+    },
+    beltLabelSelected: {
+      color: theme.primaryColor,
+    },
+    submitButton: {
+      marginTop: spacing.sm,
+    },
+    appleSection: {
+      marginTop: spacing.lg,
+      gap: spacing.base,
+    },
+    divider: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.borderDark,
+    },
+    dividerText: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.xs,
+      color: theme.textMuted,
+      marginHorizontal: spacing.md,
+      letterSpacing: fonts.letterSpacing.widest * 11,
+    },
+    appleButton: {
+      height: 50,
+      width: '100%',
+    },
+    loginLink: {
+      marginTop: spacing['2xl'],
+      alignItems: 'center',
+    },
+    loginText: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      color: theme.textMuted,
+    },
+    loginTextAccent: {
+      color: theme.primaryColor,
+      fontWeight: fonts.weight.semibold,
+    },
+  }), [theme]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -102,7 +262,7 @@ export const RegisterScreen: React.FC = () => {
                 value={name}
                 onChangeText={setName}
                 placeholder="Your full name"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={theme.textMuted}
                 autoCapitalize="words"
               />
             </View>
@@ -114,7 +274,7 @@ export const RegisterScreen: React.FC = () => {
                 value={email}
                 onChangeText={setEmail}
                 placeholder="your@email.com"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={theme.textMuted}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -128,7 +288,7 @@ export const RegisterScreen: React.FC = () => {
                 value={password}
                 onChangeText={setPassword}
                 placeholder="Minimum 8 characters"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={theme.textMuted}
                 secureTextEntry
               />
             </View>
@@ -215,161 +375,3 @@ export const RegisterScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.charcoal,
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: spacing.xl,
-    paddingBottom: spacing['2xl'],
-  },
-  header: {
-    marginTop: spacing['2xl'],
-    marginBottom: spacing['2xl'],
-  },
-  backButton: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.base,
-    color: colors.warmAccent,
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontFamily: 'BebasNeue',
-    fontSize: fonts.size['3xl'],
-    color: colors.offWhite,
-    letterSpacing: fonts.letterSpacing.wide * 40,
-  },
-  subtitle: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.base,
-    color: colors.steel,
-    marginTop: spacing.xs,
-  },
-  errorBanner: {
-    backgroundColor: 'rgba(229, 62, 62, 0.15)',
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    marginBottom: spacing.base,
-    borderWidth: 1,
-    borderColor: 'rgba(229, 62, 62, 0.3)',
-  },
-  errorText: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.sm,
-    color: colors.error,
-    textAlign: 'center',
-  },
-  form: {
-    gap: spacing.base,
-  },
-  inputContainer: {
-    gap: spacing.xs,
-  },
-  inputLabel: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    fontWeight: fonts.weight.semibold,
-    color: colors.steel,
-    letterSpacing: fonts.letterSpacing.widest * 11,
-    textTransform: 'uppercase',
-  },
-  input: {
-    backgroundColor: colors.darkGrey,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.borderDark,
-    paddingVertical: 14,
-    paddingHorizontal: spacing.base,
-    fontFamily: 'Inter',
-    fontSize: fonts.size.base,
-    color: colors.offWhite,
-  },
-  beltPicker: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    flexWrap: 'wrap',
-  },
-  beltOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: colors.darkGrey,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.borderDark,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-  },
-  beltOptionSelected: {
-    borderColor: colors.warmAccent,
-    backgroundColor: 'rgba(201, 168, 124, 0.1)',
-  },
-  beltSwatch: {
-    width: 16,
-    height: 8,
-    borderRadius: 2,
-  },
-  beltSwatchWhite: {
-    borderWidth: 1,
-    borderColor: colors.steel,
-  },
-  beltSwatchBlack: {
-    borderWidth: 1,
-    borderColor: colors.borderDark,
-  },
-  beltLabel: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.sm,
-    color: colors.steel,
-    fontWeight: fonts.weight.medium,
-  },
-  beltLabelSelected: {
-    color: colors.warmAccent,
-  },
-  submitButton: {
-    marginTop: spacing.sm,
-  },
-  appleSection: {
-    marginTop: spacing.lg,
-    gap: spacing.base,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.borderDark,
-  },
-  dividerText: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.xs,
-    color: colors.steel,
-    marginHorizontal: spacing.md,
-    letterSpacing: fonts.letterSpacing.widest * 11,
-  },
-  appleButton: {
-    height: 50,
-    width: '100%',
-  },
-  loginLink: {
-    marginTop: spacing['2xl'],
-    alignItems: 'center',
-  },
-  loginText: {
-    fontFamily: 'Inter',
-    fontSize: fonts.size.sm,
-    color: colors.steel,
-  },
-  loginTextAccent: {
-    color: colors.warmAccent,
-    fontWeight: fonts.weight.semibold,
-  },
-});

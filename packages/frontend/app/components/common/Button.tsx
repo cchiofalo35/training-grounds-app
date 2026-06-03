@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Pressable,
   Text,
@@ -7,7 +7,8 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { colors, fonts, borderRadius as br, buttonStyles } from '@training-grounds/shared';
+import { fonts, buttonStyles } from '@training-grounds/shared';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ButtonProps {
   title: string;
@@ -28,8 +29,21 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
 }) => {
+  const theme = useTheme();
   const isPrimary = variant === 'primary';
   const themeStyle = isPrimary ? buttonStyles.primary : buttonStyles.outline;
+
+  const styles = useMemo(() => StyleSheet.create({
+    base: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 50,
+    },
+    text: {
+      fontFamily: 'Inter',
+      textTransform: 'uppercase',
+    },
+  }), [theme]);
 
   return (
     <Pressable
@@ -52,7 +66,7 @@ export const Button: React.FC<ButtonProps> = ({
       {isLoading ? (
         <ActivityIndicator
           size="small"
-          color={isPrimary ? colors.charcoal : colors.offWhite}
+          color={isPrimary ? theme.secondaryColor : theme.textPrimary}
         />
       ) : (
         <Text
@@ -73,15 +87,3 @@ export const Button: React.FC<ButtonProps> = ({
     </Pressable>
   );
 };
-
-const styles = StyleSheet.create({
-  base: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 50,
-  },
-  text: {
-    fontFamily: 'Inter',
-    textTransform: 'uppercase',
-  },
-});

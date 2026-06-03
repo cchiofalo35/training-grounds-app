@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Image, Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { colors, fonts } from '@training-grounds/shared';
+import { fonts } from '@training-grounds/shared';
 import type { RootState } from '../../redux/store';
 import type { AppStackParamList } from '../../navigation/AppStack';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type NavProp = NativeStackNavigationProp<AppStackParamList>;
 
@@ -14,6 +15,7 @@ interface ProfileAvatarProps {
 }
 
 export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ size = 40 }) => {
+  const theme = useTheme();
   const navigation = useNavigation<NavProp>();
   const user = useSelector((state: RootState) => state.auth.user);
 
@@ -55,7 +57,7 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ size = 40 }) => {
             width: innerSize,
             height: innerSize,
             borderRadius: innerSize / 2,
-            backgroundColor: 'rgba(201, 168, 124, 0.15)',
+            backgroundColor: theme.primaryColor + '26',
             justifyContent: 'center',
             alignItems: 'center',
           }}
@@ -65,7 +67,7 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ size = 40 }) => {
               fontFamily: 'Inter',
               fontSize: size * 0.4,
               fontWeight: '600',
-              color: colors.warmAccent,
+              color: theme.primaryColor,
             }}
           >
             {initial}

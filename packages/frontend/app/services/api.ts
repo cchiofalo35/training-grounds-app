@@ -1,5 +1,6 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { store } from '../redux/store';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1';
 
@@ -17,6 +18,13 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Attach active gym context for tenant-scoped requests
+    const gymId = store.getState().gym.activeGymId;
+    if (gymId) {
+      config.headers['X-Gym-Id'] = gymId;
+    }
+
     return config;
   },
   (error) => Promise.reject(error),
