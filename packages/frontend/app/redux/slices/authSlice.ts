@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as SecureStore from 'expo-secure-store';
 import type { User } from '@training-grounds/shared';
 import { authService } from '../../services/authService';
+import { fetchUserGyms, clearPersistedGym } from './gymSlice';
 
 interface AuthState {
   user: User | null;
@@ -19,10 +20,11 @@ const initialState: AuthState = {
 
 export const login = createAsyncThunk(
   'auth/login',
-  async (credentials: { email: string; password: string }, { rejectWithValue }) => {
+  async (credentials: { email: string; password: string }, { rejectWithValue, dispatch }) => {
     try {
       const response = await authService.login(credentials.email, credentials.password);
       await SecureStore.setItemAsync('auth_token', response.accessToken);
+      await dispatch(fetchUserGyms());
       return response.user;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Login failed';
@@ -35,11 +37,12 @@ export const register = createAsyncThunk(
   'auth/register',
   async (
     data: { name: string; email: string; password: string; beltRank: string },
-    { rejectWithValue },
+    { rejectWithValue, dispatch },
   ) => {
     try {
       const response = await authService.register(data);
       await SecureStore.setItemAsync('auth_token', response.accessToken);
+      await dispatch(fetchUserGyms());
       return response.user;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Registration failed';
@@ -50,10 +53,11 @@ export const register = createAsyncThunk(
 
 export const signInWithApple = createAsyncThunk(
   'auth/signInWithApple',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
       const response = await authService.signInWithApple();
       await SecureStore.setItemAsync('auth_token', response.accessToken);
+      await dispatch(fetchUserGyms());
       return response.user;
     } catch (error: unknown) {
       // User cancelled Apple Sign-In — don't show error
@@ -66,17 +70,19 @@ export const signInWithApple = createAsyncThunk(
   },
 );
 
-export const logout = createAsyncThunk('auth/logout', async () => {
+export const logout = createAsyncThunk('auth/logout', async (_, { dispatch }) => {
   await SecureStore.deleteItemAsync('auth_token');
+  dispatch(clearPersistedGym());
 });
 
 export const restoreSession = createAsyncThunk(
   'auth/restoreSession',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
       const token = await SecureStore.getItemAsync('auth_token');
       if (!token) return rejectWithValue('No token');
       const user = await authService.getMe();
+      await dispatch(fetchUserGyms());
       return user;
     } catch (error: unknown) {
       await SecureStore.deleteItemAsync('auth_token');

@@ -3,6 +3,7 @@ import authReducer from './slices/authSlice';
 import attendanceReducer from './slices/attendanceSlice';
 import gamificationReducer from './slices/gamificationSlice';
 import journalReducer from './slices/journalSlice';
+import gymReducer from './slices/gymSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     attendance: attendanceReducer,
     gamification: gamificationReducer,
     journal: journalReducer,
+    gym: gymReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
