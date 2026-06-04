@@ -37,11 +37,35 @@ that works too, but the one above is yours.)*
   - Each has a target ("criteria": check-ins, classes, streak days, PRs, etc.),
     an XP reward, and optional start/end dates. Edit, activate/deactivate, or
     delete any time. Karuna already has 18 live ones you can edit as examples.
-- **Members** — view roster, search, change roles/belts/stripes.
+- **Members** — view roster, search, change roles/belts/stripes. **Click a member
+  name** → their **Progress page**: XP/streak/check-in stats + a **lift
+  progression chart per movement** (Back Squat, Deadlift, Clean & Jerk, Snatch,
+  Strict Press) + recent check-ins.
 - **Classes** — create/edit the class schedule.
 - **Badges** — create achievement badges.
 - **Journal Feed** — read members' shared session reflections and comment.
 - **Channels** — manage the community channels.
+
+## Demo data (for the client presentation)
+
+Seeded into the live Karuna gym (re-runnable via `/tmp/karuna-demo-seed.sql`):
+- **3 demo clients** — Sarah Mitchell (intermediate), Jake Thompson (beginner),
+  Emma Rodriguez (advanced). Emails `*@demo.crossfitkaruna.app`.
+- Each has **attendance history** (14–28 check-ins over weeks), **multi-month
+  lifting PRs** (so the progress charts show real upward trends), **journal
+  entries** (some with coach feedback), and **skill progress** across the existing
+  Double-Unders / Snatch / Muscle-Up / etc. catalog.
+- **2 new challenges** — "One Month Challenge" (monthly, 400 XP) and "First Timer
+  Challenge" (one-time, 150 XP).
+- Re-seed any time: `psql "$DB_URL" -f /tmp/karuna-demo-seed.sql` (wipes + reseeds
+  only the demo rows). To remove demo data, delete users where email LIKE
+  `%@demo.crossfitkaruna.app` (+ the two named challenges).
+
+**Caveat — skills aren't in the portal yet.** The skills catalog + per-member
+skill progress exist in the DB and show in the **mobile app**, but the backend has
+no skills API endpoint, so the web portal can't display them without a small
+backend addition (new `GET /admin/members/:id/skills` + a Skills section on the
+member page + a Railway redeploy). Flagged as the next step if you want it.
 
 ## How it's wired (for future me)
 
