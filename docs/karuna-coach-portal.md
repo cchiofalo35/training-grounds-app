@@ -44,7 +44,12 @@ that works too, but the one above is yours.)*
 - **Classes** — create/edit the class schedule.
 - **Badges** — create achievement badges.
 - **Journal Feed** — read members' shared session reflections and comment.
-- **Channels** — manage the community channels.
+- **Announcements** — post ONE important update; it shows as a banner on every
+  member's home screen (separate from the chatty community channels). Toggle it
+  live/off or delete. Backed by a dedicated `announcements` table + endpoints
+  (`/announcements`, `/announcements/active`). One is seeded for the demo.
+- **Channels** — manage the community channels (now seeded with realistic
+  CrossFit conversations across #general, #wod-results, #pr-bell, etc.).
 
 ## Demo data (for the client presentation)
 
