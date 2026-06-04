@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, Fragment } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, X, Save } from 'lucide-react';
 import api from '../lib/api';
 
@@ -41,6 +42,7 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 export function MembersPage() {
+  const navigate = useNavigate();
   const [members, setMembers] = useState<Member[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>({ page: 1, perPage: 20, total: 0, totalPages: 0 });
   const [search, setSearch] = useState('');
@@ -60,7 +62,18 @@ export function MembersPage() {
       if (roleFilter) params.set('role', roleFilter);
       const res = await api.get(`/admin/members?${params}`);
       const data = res.data.data;
-      setMembers(data.members || data.items || data || []);
+      const raw = data.members || data.items || data || [];
+      // The API returns beltRank/totalXp/currentStreak/joinedAt; map to the
+      // fields this table renders.
+      setMembers(
+        raw.map((m: any) => ({
+          ...m,
+          belt: m.belt ?? m.beltRank,
+          xp: m.xp ?? m.totalXp,
+          streak: m.streak ?? m.currentStreak,
+          createdAt: m.createdAt ?? m.joinedAt,
+        })),
+      );
       if (data.pagination) {
         setPagination(data.pagination);
       } else {
@@ -173,7 +186,15 @@ export function MembersPage() {
                       onClick={() => handleRowClick(member)}
                       className="border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors"
                     >
-                      <td className="py-3 px-4 text-off-white font-medium">{member.name}</td>
+                      <td className="py-3 px-4 font-medium">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); navigate(`/members/${member.id}`); }}
+                          className="text-off-white hover:text-warm-accent hover:underline text-left"
+                          title="View progress"
+                        >
+                          {member.name}
+                        </button>
+                      </td>
                       <td className="py-3 px-4 text-steel">{member.email}</td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">

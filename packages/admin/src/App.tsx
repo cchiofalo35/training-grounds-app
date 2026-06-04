@@ -4,6 +4,7 @@ import { AdminLayout } from './layouts/AdminLayout';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { MembersPage } from './pages/MembersPage';
+import { MemberDetailPage } from './pages/MemberDetailPage';
 import { ClassesPage } from './pages/ClassesPage';
 import { BadgesPage } from './pages/BadgesPage';
 import { QuestsPage } from './pages/QuestsPage';
@@ -24,6 +25,7 @@ export default function App() {
       <Route path="/" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
         <Route index element={<DashboardPage />} />
         <Route path="members" element={<MembersPage />} />
+        <Route path="members/:id" element={<MemberDetailPage />} />
         <Route path="classes" element={<ClassesPage />} />
         <Route path="badges" element={<BadgesPage />} />
         <Route path="quests" element={<QuestsPage />} />
