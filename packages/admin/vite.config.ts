@@ -13,18 +13,15 @@ export default defineConfig({
     },
   },
   build: {
-    // Split the bundle into smaller vendor chunks. A single ~840KB JS file was
-    // intermittently 404ing on GitHub Pages while smaller assets served fine;
-    // splitting keeps every chunk small and is better for caching anyway.
-    chunkSizeWarningLimit: 700,
+    // GitHub Pages on this account does not serve newly-deployed /assets/* files
+    // (only the root index.html serves reliably). So emit ONE JS chunk + one CSS
+    // file and inline them into index.html post-build (see scripts/inline.mjs) so
+    // the whole app ships in the single file that always serves.
+    chunkSizeWarningLimit: 2000,
+    cssCodeSplit: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-charts': ['recharts'],
-          'vendor-firebase': ['firebase/app', 'firebase/auth'],
-          'vendor-icons': ['lucide-react'],
-        },
+        inlineDynamicImports: true,
       },
     },
   },

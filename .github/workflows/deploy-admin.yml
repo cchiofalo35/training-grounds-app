@@ -1,4 +1,7 @@
-name: Deploy Admin Dashboards
+name: Deploy Training Grounds Admin
+
+# Training Grounds admin portal only. CrossFit Karuna is a separate company and
+# ships from its own repository (cchiofalo35/crossfit-karuna) — nothing shared.
 
 on:
   push:
@@ -40,64 +43,18 @@ jobs:
       - name: Build shared package
         run: npm run build --workspace=packages/shared
 
-      # --- CrossFit Karuna portal -> /training-grounds-app/karuna/ ---
-      - name: Build Karuna portal
-        env:
-          VITE_BRAND: karuna
-          VITE_BASE: /training-grounds-app/karuna/
-        run: npm run build --workspace=packages/admin
-      - name: Stage Karuna
-        run: |
-          mkdir -p site/karuna
-          cp -r packages/admin/dist/* site/karuna/
-          cp packages/admin/dist/index.html site/karuna/404.html
-
-      # --- Training Grounds portal -> /training-grounds-app/training-grounds/ ---
-      - name: Build Training Grounds portal
+      # GitHub Pages on this account does not serve newly-deployed /assets/* files,
+      # so build a single self-contained index.html (inline JS + CSS).
+      - name: Build Training Grounds portal (single-file)
         env:
           VITE_BRAND: training-grounds
-          VITE_BASE: /training-grounds-app/training-grounds/
-        run: npm run build --workspace=packages/admin
-      - name: Stage Training Grounds
+          VITE_BASE: /training-grounds-app/
         run: |
-          mkdir -p site/training-grounds
-          cp -r packages/admin/dist/* site/training-grounds/
-          cp packages/admin/dist/index.html site/training-grounds/404.html
-
-      # --- Landing page + disable Jekyll (so hashed JS assets are served as-is) ---
-      - name: Landing page + .nojekyll
-        run: |
-          touch site/.nojekyll
-          cat > site/index.html <<'HTML'
-          <!doctype html>
-          <html lang="en">
-            <head>
-              <meta charset="utf-8" />
-              <meta name="viewport" content="width=device-width, initial-scale=1" />
-              <title>Coach Portals</title>
-              <style>
-                body{margin:0;font-family:Inter,-apple-system,system-ui,sans-serif;background:#1E1E1E;color:#FAFAF8;display:flex;min-height:100vh;align-items:center;justify-content:center}
-                .wrap{text-align:center;padding:24px}
-                h1{font-size:14px;letter-spacing:.2em;text-transform:uppercase;color:#B0B5B8;font-weight:600}
-                .cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:20px}
-                a{display:block;width:220px;padding:28px 20px;border-radius:14px;text-decoration:none;border:1px solid rgba(255,255,255,.08);background:#2A2A2A;transition:.15s}
-                a:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.2)}
-                .k{color:#8BC53F}.t{color:#C9A87C}
-                .n{font-size:22px;font-weight:800;letter-spacing:.04em}
-                .s{font-size:12px;color:#B0B5B8;margin-top:6px}
-              </style>
-            </head>
-            <body>
-              <div class="wrap">
-                <h1>Coach Portals</h1>
-                <div class="cards">
-                  <a href="./karuna/"><div class="n k">CROSSFIT KARUNA</div><div class="s">Coach Portal</div></a>
-                  <a href="./training-grounds/"><div class="n t">TRAINING GROUNDS</div><div class="s">Admin Dashboard</div></a>
-                </div>
-              </div>
-            </body>
-          </html>
-          HTML
+          npm run build --workspace=packages/admin
+          node packages/admin/scripts/inline.mjs
+          rm -rf packages/admin/dist/assets
+          cp packages/admin/dist/index.html packages/admin/dist/404.html
+          touch packages/admin/dist/.nojekyll
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -105,7 +62,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: packages/admin/dist
 
       - name: Deploy to GitHub Pages
         id: deployment
