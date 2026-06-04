@@ -17,7 +17,7 @@ document.title = `${BRAND.wordmark} · ${BRAND.subtitle}`;
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter basename="/training-grounds-app">
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <AuthProvider>
         <App />
       </AuthProvider>

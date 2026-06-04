@@ -4,7 +4,9 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/training-grounds-app/',
+  // Per-portal base path (each tenant deploys to its own sub-path / host).
+  // Defaults to the single Karuna Pages path for backwards compatibility.
+  base: process.env.VITE_BASE || '/training-grounds-app/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
