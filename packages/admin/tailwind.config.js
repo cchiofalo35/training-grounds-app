@@ -6,7 +6,9 @@ export default {
       colors: {
         charcoal: '#1E1E1E',
         'dark-grey': '#2A2A2A',
-        'warm-accent': '#C9A87C',
+        // Brand accent — driven by --brand-accent-rgb (set per tenant in main.tsx)
+        // so every `warm-accent` utility (incl. /opacity variants) follows the brand.
+        'warm-accent': 'rgb(var(--brand-accent-rgb) / <alpha-value>)',
         steel: '#B0B5B8',
         'off-white': '#FAFAF8',
       },

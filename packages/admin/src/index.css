@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Brand accent (CrossFit Karuna green). main.tsx overrides this per VITE_BRAND. */
+  --brand-accent-rgb: 139 197 63;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;

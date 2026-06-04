@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Users, UserCheck, UserPlus, ClipboardCheck, TrendingUp } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../lib/api';
+import { BRAND } from '../brand';
 
 interface OverviewData {
   totalMembers: number;
@@ -167,7 +168,7 @@ export function DashboardPage() {
                   contentStyle={{ backgroundColor: '#2A2A2A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#FAFAF8' }}
                   labelFormatter={(val) => new Date(val).toLocaleDateString()}
                 />
-                <Line type="monotone" dataKey="count" stroke="#C9A87C" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#C9A87C' }} />
+                <Line type="monotone" dataKey="count" stroke={BRAND.accentHex} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: BRAND.accentHex }} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
@@ -187,7 +188,7 @@ export function DashboardPage() {
                 <Tooltip
                   contentStyle={{ backgroundColor: '#2A2A2A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#FAFAF8' }}
                 />
-                <Bar dataKey="count" fill="#C9A87C" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="count" fill={BRAND.accentHex} radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (

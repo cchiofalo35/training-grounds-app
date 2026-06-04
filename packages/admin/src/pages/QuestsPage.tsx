@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Swords, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Target, ToggleLeft, ToggleRight } from 'lucide-react';
 import api from '../lib/api';
 
 interface Quest {
@@ -7,9 +7,13 @@ interface Quest {
   name: string;
   description: string;
   type: string;
+  // Backend stores criteria as a JSON blob; we flatten it for the form.
+  criteriaJson?: { type?: string; threshold?: number };
   criteriaType: string;
   criteriaThreshold: number;
   xpReward: number;
+  // Backend uses isActive; we surface it as a 'status' string for the UI.
+  isActive?: boolean;
   status: string;
   startDate: string;
   endDate: string;
@@ -26,7 +30,13 @@ interface QuestFormData {
   endDate: string;
 }
 
+// A quest powers both short-term tasks and longer-term goals/challenges.
 const QUEST_TYPES = ['weekly', 'monthly', 'special'];
+const TYPE_LABELS: Record<string, string> = {
+  weekly: 'Weekly Task',
+  monthly: 'Monthly Goal',
+  special: 'Special Challenge',
+};
 const CRITERIA_TYPES = [
   { value: 'check_ins', label: 'Check-ins' },
   { value: 'classes_attended', label: 'Classes Attended' },
@@ -73,7 +83,14 @@ export function QuestsPage() {
     setError('');
     try {
       const res = await api.get('/admin/quests');
-      setQuests(res.data.data || []);
+      // Normalize backend shape (criteriaJson + isActive) into the flat fields the UI uses.
+      const list = (res.data.data || []).map((q: Quest) => ({
+        ...q,
+        criteriaType: q.criteriaType ?? q.criteriaJson?.type ?? 'check_ins',
+        criteriaThreshold: q.criteriaThreshold ?? q.criteriaJson?.threshold ?? 1,
+        status: q.status ?? (q.isActive === false ? 'inactive' : 'active'),
+      }));
+      setQuests(list);
     } catch (err: any) {
       setError(err.message || 'Failed to load quests');
     } finally {
@@ -108,10 +125,18 @@ export function QuestsPage() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const payload = {
-        ...form,
-        criteria: { type: form.criteriaType, threshold: form.criteriaThreshold },
+      // Backend DTO expects: name, description, type, criteriaJson, xpReward,
+      // optional startDate/endDate. It rejects unknown props, so DON'T send the
+      // flat criteriaType/criteriaThreshold, and omit blank dates.
+      const payload: Record<string, unknown> = {
+        name: form.name,
+        description: form.description,
+        type: form.type,
+        xpReward: form.xpReward,
+        criteriaJson: { type: form.criteriaType, threshold: form.criteriaThreshold },
       };
+      if (form.startDate) payload.startDate = form.startDate;
+      if (form.endDate) payload.endDate = form.endDate;
       if (editingId) {
         await api.patch(`/admin/quests/${editingId}`, payload);
       } else {
@@ -137,25 +162,32 @@ export function QuestsPage() {
   };
 
   const handleToggleStatus = async (quest: Quest) => {
-    const newStatus = quest.status === 'active' ? 'inactive' : 'active';
+    const nowActive = quest.status !== 'active';
+    const newStatus = nowActive ? 'active' : 'inactive';
     try {
-      await api.patch(`/admin/quests/${quest.id}`, { status: newStatus });
-      setQuests((prev) => prev.map((q) => (q.id === quest.id ? { ...q, status: newStatus } : q)));
+      // Backend uses the isActive boolean, not a status string.
+      await api.patch(`/admin/quests/${quest.id}`, { isActive: nowActive });
+      setQuests((prev) =>
+        prev.map((q) => (q.id === quest.id ? { ...q, status: newStatus, isActive: nowActive } : q)),
+      );
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to update quest status');
+      alert(err.response?.data?.message || 'Failed to update status');
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-heading text-3xl text-off-white tracking-wider">Quests</h1>
+        <div>
+          <h1 className="font-heading text-3xl text-off-white tracking-wider">Tasks &amp; Goals</h1>
+          <p className="text-sm text-steel mt-1">Set challenges your members earn XP for — they appear in everyone's app automatically.</p>
+        </div>
         <button
           onClick={openCreate}
           className="flex items-center gap-2 bg-warm-accent text-charcoal px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-warm-accent/90 transition-colors"
         >
           <Plus size={16} />
-          Create Quest
+          New Task / Goal
         </button>
       </div>
 
@@ -192,8 +224,8 @@ export function QuestsPage() {
               ) : quests.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center">
-                    <Swords size={48} className="mx-auto text-steel/30 mb-4" />
-                    <p className="text-steel">No quests yet. Create your first quest!</p>
+                    <Target size={48} className="mx-auto text-steel/30 mb-4" />
+                    <p className="text-steel">No tasks or goals yet. Create your first one!</p>
                   </td>
                 </tr>
               ) : (
@@ -206,8 +238,8 @@ export function QuestsPage() {
                       </div>
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${TYPE_COLORS[quest.type] || 'bg-white/5 text-steel'}`}>
-                        {quest.type}
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${TYPE_COLORS[quest.type] || 'bg-white/5 text-steel'}`}>
+                        {TYPE_LABELS[quest.type] || quest.type}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-steel">
@@ -270,7 +302,7 @@ export function QuestsPage() {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-dark-grey rounded-xl border border-white/10 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-white/5">
-              <h2 className="text-lg font-semibold text-off-white">{editingId ? 'Edit Quest' : 'Create Quest'}</h2>
+              <h2 className="text-lg font-semibold text-off-white">{editingId ? 'Edit Task / Goal' : 'New Task / Goal'}</h2>
               <button onClick={() => setModalOpen(false)} className="text-steel hover:text-off-white transition-colors">
                 <X size={20} />
               </button>
@@ -306,7 +338,7 @@ export function QuestsPage() {
                     onChange={(e) => setForm({ ...form, type: e.target.value })}
                     className="w-full bg-charcoal border border-white/10 rounded-lg px-3 py-2.5 text-sm text-off-white focus:outline-none focus:border-warm-accent"
                   >
-                    {QUEST_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                    {QUEST_TYPES.map((t) => <option key={t} value={t}>{TYPE_LABELS[t] || t}</option>)}
                   </select>
                 </div>
                 <div>
@@ -377,7 +409,7 @@ export function QuestsPage() {
                   disabled={submitting}
                   className="px-4 py-2.5 text-sm font-medium bg-warm-accent text-charcoal rounded-lg hover:bg-warm-accent/90 transition-colors disabled:opacity-50"
                 >
-                  {submitting ? 'Saving...' : editingId ? 'Update Quest' : 'Create Quest'}
+                  {submitting ? 'Saving...' : editingId ? 'Update' : 'Create'}
                 </button>
               </div>
             </form>

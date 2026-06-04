@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LayoutDashboard, Users, Calendar, Award, Swords, BookOpen, MessageSquare, LogOut, Menu, X } from 'lucide-react';
+import { BRAND } from '../brand';
+import { LayoutDashboard, Users, Calendar, Award, Target, BookOpen, MessageSquare, LogOut, Menu, X } from 'lucide-react';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/members', icon: Users, label: 'Members' },
   { to: '/classes', icon: Calendar, label: 'Classes' },
   { to: '/badges', icon: Award, label: 'Badges' },
-  { to: '/quests', icon: Swords, label: 'Quests' },
+  { to: '/quests', icon: Target, label: 'Tasks & Goals' },
   { to: '/journal-feed', icon: BookOpen, label: 'Journal Feed' },
   { to: '/channels', icon: MessageSquare, label: 'Channels' },
 ];
@@ -26,8 +27,8 @@ export function AdminLayout() {
   const sidebarContent = (
     <>
       <div className="p-6 border-b border-white/5">
-        <h1 className="font-heading text-2xl text-warm-accent tracking-wider">TRAINING GROUNDS</h1>
-        <p className="text-xs text-steel mt-1">Admin Dashboard</p>
+        <h1 className="font-heading text-2xl text-warm-accent tracking-wider">{BRAND.wordmark}</h1>
+        <p className="text-xs text-steel mt-1">{BRAND.subtitle}</p>
       </div>
 
       <nav className="flex-1 p-4 space-y-1">
@@ -82,7 +83,7 @@ export function AdminLayout() {
         >
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
-        <h1 className="font-heading text-lg text-warm-accent tracking-wider">TRAINING GROUNDS</h1>
+        <h1 className="font-heading text-lg text-warm-accent tracking-wider">{BRAND.wordmark}</h1>
         <div className="w-8" />
       </div>
 

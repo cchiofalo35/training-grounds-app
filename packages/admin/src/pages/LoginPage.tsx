@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { BRAND } from '../brand';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -33,8 +34,12 @@ export function LoginPage() {
     <div className="min-h-screen bg-charcoal flex items-center justify-center">
       <div className="w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <h1 className="font-heading text-4xl text-warm-accent tracking-wider">TRAINING GROUNDS</h1>
-          <p className="text-steel mt-2">Admin Dashboard</p>
+          <h1 className="font-heading text-4xl tracking-wider leading-none">
+            <span className="text-off-white">{BRAND.line1}</span>{' '}
+            <span className="text-warm-accent">{BRAND.line2}</span>
+          </h1>
+          <p className="text-steel mt-2">{BRAND.subtitle}</p>
+          <p className="text-warm-accent text-xs uppercase tracking-widest mt-1">{BRAND.tagline}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-dark-grey rounded-xl p-6 space-y-4 border border-white/5">
@@ -51,7 +56,7 @@ export function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-charcoal border border-white/10 rounded-lg px-4 py-3 text-off-white focus:outline-none focus:border-warm-accent transition-colors"
-              placeholder="coach@traininggrounds.app"
+              placeholder={BRAND.loginHint}
               required
             />
           </div>

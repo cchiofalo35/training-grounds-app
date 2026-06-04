@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { GYM_ID } from '../brand';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://backend-production-3469.up.railway.app/api/v1';
 
@@ -13,6 +14,10 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // The backend's TenantMiddleware requires X-Gym-Id on every non-auth route.
+  // This portal manages a single gym (Karuna by default), so scope every
+  // request to it.
+  config.headers['X-Gym-Id'] = GYM_ID;
   return config;
 });
 
