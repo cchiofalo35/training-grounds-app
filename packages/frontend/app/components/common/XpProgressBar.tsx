@@ -18,6 +18,7 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
   const theme = useTheme();
   const progress = nextLevelXp > 0 ? Math.min(currentXp / nextLevelXp, 1) : 0;
   const percentage = Math.round(progress * 100);
+  const remainingXp = Math.max(0, nextLevelXp - currentXp);
 
   const styles = useMemo(() => StyleSheet.create({
     container: {
@@ -79,7 +80,7 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
         <View style={[styles.fill, { width: `${percentage}%` }]} />
       </View>
       <Text style={styles.threshold}>
-        {nextLevelXp.toLocaleString()} XP to next level
+        {remainingXp.toLocaleString()} XP to next level
       </Text>
     </View>
   );

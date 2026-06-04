@@ -17,6 +17,7 @@ import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
 import type { Discipline } from '@training-grounds/shared';
 import type { AppDispatch, RootState } from '../../redux/store';
 import { checkIn, type CheckInData } from '../../redux/slices/attendanceSlice';
+import { refreshUser } from '../../redux/slices/authSlice';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -133,6 +134,8 @@ export const CheckInScreen: React.FC = () => {
         className: selectedClass?.name ?? 'Class',
         xp: (result as any)?.xpEarned ?? 50,
       });
+      // Refresh user so the XP earned + new streak show on the dashboard
+      dispatch(refreshUser());
       setMode('success');
     } catch {
       Alert.alert('Check-in Failed', 'Please try again or select a different class.');

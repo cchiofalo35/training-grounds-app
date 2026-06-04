@@ -92,6 +92,23 @@ export const restoreSession = createAsyncThunk(
   },
 );
 
+/**
+ * Lightweight user refresh — re-fetches the current user (XP, streak, level,
+ * etc.) without the full session restore / gym re-fetch. Dispatch after any
+ * action that earns XP (check-in, logging a PR) so the dashboard reflects it.
+ */
+export const refreshUser = createAsyncThunk(
+  'auth/refreshUser',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await authService.getMe();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to refresh user';
+      return rejectWithValue(message);
+    }
+  },
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -161,6 +178,10 @@ const authSlice = createSlice({
       // Restore session
       .addCase(restoreSession.pending, (state) => {
         state.isLoading = true;
+      })
+      // Refresh user (after earning XP) — update user without flipping isLoading
+      .addCase(refreshUser.fulfilled, (state, action) => {
+        state.user = action.payload;
       })
       .addCase(restoreSession.fulfilled, (state, action) => {
         state.isLoading = false;

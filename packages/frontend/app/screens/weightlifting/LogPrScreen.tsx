@@ -13,6 +13,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useDispatch } from 'react-redux';
 import { useTheme } from '../../contexts/ThemeContext';
 import { spacing, borderRadius } from '@training-grounds/shared';
 import {
@@ -20,6 +21,8 @@ import {
   TRACKED_LIFTS,
   type PrValueUnit,
 } from '../../services/personalRecordService';
+import { refreshUser } from '../../redux/slices/authSlice';
+import type { AppDispatch } from '../../redux/store';
 import type { AppStackParamList } from '../../navigation/AppStack';
 
 type LogPrRoute = RouteProp<AppStackParamList, 'LogPr'>;
@@ -29,6 +32,7 @@ export const LogPrScreen: React.FC = () => {
   const theme = useTheme();
   const route = useRoute<LogPrRoute>();
   const nav = useNavigation<LogPrNav>();
+  const dispatch = useDispatch<AppDispatch>();
 
   const [movement, setMovement] = useState<string>(route.params?.movementName ?? 'Back Squat');
   const [weight, setWeight] = useState('');
@@ -55,6 +59,8 @@ export const LogPrScreen: React.FC = () => {
         valueUnit: unit,
         notes: notes.trim() || undefined,
       });
+      // Refresh user so the XP awarded for this lift shows on the dashboard
+      if (result.xpAwarded) dispatch(refreshUser());
       if (result.isNewPr) {
         Alert.alert(
           '🔔 New PR!',
