@@ -26,6 +26,7 @@ import { BeltDisplay } from '../../components/common/BeltDisplay';
 import { ProfileAvatar } from '../../components/common/ProfileAvatar';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useGymCopy } from '../../utils/gymCopy';
+import { announcementService, type Announcement } from '../../services/announcementService';
 import type { MainTabParamList } from '../../navigation/MainTabs';
 import type { AppStackParamList } from '../../navigation/AppStack';
 
@@ -236,12 +237,23 @@ export const DashboardScreen: React.FC = () => {
   );
 
   const [refreshing, setRefreshing] = React.useState(false);
+  const [announcement, setAnnouncement] = React.useState<Announcement | null>(null);
+
+  const loadAnnouncement = React.useCallback(async () => {
+    try {
+      const list = await announcementService.getActive();
+      setAnnouncement(list[0] ?? null);
+    } catch {
+      // non-fatal — banner just won't show
+    }
+  }, []);
 
   useEffect(() => {
     dispatch(fetchHistory());
     dispatch(fetchStreak());
     dispatch(fetchQuests());
-  }, [dispatch]);
+    loadAnnouncement();
+  }, [dispatch, loadAnnouncement]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -249,6 +261,7 @@ export const DashboardScreen: React.FC = () => {
       dispatch(fetchHistory()),
       dispatch(fetchStreak()),
       dispatch(fetchQuests()),
+      loadAnnouncement(),
     ]);
     setRefreshing(false);
   };
@@ -364,6 +377,40 @@ export const DashboardScreen: React.FC = () => {
       fontSize: fonts.size.xs,
       color: theme.textMuted,
       textAlign: 'right',
+    },
+    announcementBanner: {
+      backgroundColor: theme.surfaceColor,
+      borderRadius: borderRadius.xl,
+      borderWidth: 1,
+      borderColor: theme.primaryColor,
+      padding: spacing.base,
+      marginBottom: spacing.lg,
+    },
+    announcementHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    announcementLabel: {
+      fontFamily: 'Inter',
+      fontSize: 10,
+      fontWeight: '700' as const,
+      letterSpacing: 1.5,
+      color: theme.primaryColor,
+    },
+    announcementTitle: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.base,
+      fontWeight: '700' as const,
+      color: theme.textPrimary,
+      marginTop: 6,
+    },
+    announcementBody: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      color: theme.textMuted,
+      lineHeight: 18,
+      marginTop: 2,
     },
     checkInButton: {
       flexDirection: 'row',
@@ -746,6 +793,18 @@ export const DashboardScreen: React.FC = () => {
             </Text>
           </Card>
         </View>
+
+        {/* Announcement banner — gym-wide important update */}
+        {announcement && (
+          <View style={styles.announcementBanner}>
+            <View style={styles.announcementHeader}>
+              <Ionicons name="megaphone" size={16} color={theme.primaryColor} />
+              <Text style={styles.announcementLabel}>ANNOUNCEMENT</Text>
+            </View>
+            <Text style={styles.announcementTitle}>{announcement.title}</Text>
+            <Text style={styles.announcementBody}>{announcement.body}</Text>
+          </View>
+        )}
 
         {/* Quick Check-in Button */}
         <Pressable

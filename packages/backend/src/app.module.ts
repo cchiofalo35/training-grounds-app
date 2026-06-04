@@ -11,6 +11,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { CommunityModule } from './modules/community/community.module';
 import { GymModule } from './modules/gym/gym.module';
 import { PersonalRecordModule } from './modules/personal-record/personal-record.module';
+import { AnnouncementsModule } from './modules/announcements/announcements.module';
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import { GymEntity } from './entities/gym.entity';
 
@@ -62,6 +63,7 @@ import { GymEntity } from './entities/gym.entity';
     AdminModule,
     CommunityModule,
     PersonalRecordModule,
+    AnnouncementsModule,
   ],
 })
 export class AppModule implements NestModule {

@@ -109,6 +109,25 @@ export const refreshUser = createAsyncThunk(
   },
 );
 
+/** Update editable profile fields (name, bio, avatar) and persist to backend. */
+export const updateProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (
+    updates: { name?: string; bio?: string; avatarUrl?: string },
+    { getState, rejectWithValue },
+  ) => {
+    try {
+      const state = getState() as { auth: AuthState };
+      const userId = state.auth.user?.id;
+      if (!userId) return rejectWithValue('Not signed in');
+      return await authService.updateProfile(userId, updates);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to update profile';
+      return rejectWithValue(message);
+    }
+  },
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -181,6 +200,9 @@ const authSlice = createSlice({
       })
       // Refresh user (after earning XP) — update user without flipping isLoading
       .addCase(refreshUser.fulfilled, (state, action) => {
+        state.user = action.payload;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
         state.user = action.payload;
       })
       .addCase(restoreSession.fulfilled, (state, action) => {

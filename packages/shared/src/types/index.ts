@@ -74,6 +74,7 @@ export interface User {
   email: string;
   name: string;
   avatarUrl?: string;
+  bio?: string;
   beltRank: BeltRank;
   stripes: number;
   role: UserRole;

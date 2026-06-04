@@ -30,6 +30,9 @@ export class UserEntity {
   @Column({ type: 'varchar', length: 512, nullable: true })
   avatarUrl!: string | null;
 
+  @Column({ type: 'text', nullable: true })
+  bio!: string | null;
+
   @Column({ type: 'varchar', length: 20, default: 'white' })
   beltRank!: BeltRank;
 

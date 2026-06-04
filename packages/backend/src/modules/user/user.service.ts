@@ -8,6 +8,7 @@ import { UserBadgeEntity } from '../../entities/badge.entity';
 interface UpdateUserDto {
   name?: string;
   avatarUrl?: string;
+  bio?: string;
 }
 
 export interface UserStats {
@@ -49,6 +50,10 @@ export class UserService {
 
     if (dto.avatarUrl !== undefined) {
       user.avatarUrl = dto.avatarUrl;
+    }
+
+    if (dto.bio !== undefined) {
+      user.bio = dto.bio;
     }
 
     return this.userRepo.save(user);

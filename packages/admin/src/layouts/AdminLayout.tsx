@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { BRAND } from '../brand';
-import { LayoutDashboard, Users, Calendar, Award, Target, BookOpen, MessageSquare, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Award, Target, Megaphone, BookOpen, MessageSquare, LogOut, Menu, X } from 'lucide-react';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -10,6 +10,7 @@ const navItems = [
   { to: '/classes', icon: Calendar, label: 'Classes' },
   { to: '/badges', icon: Award, label: 'Badges' },
   { to: '/quests', icon: Target, label: 'Tasks & Goals' },
+  { to: '/announcements', icon: Megaphone, label: 'Announcements' },
   { to: '/journal-feed', icon: BookOpen, label: 'Journal Feed' },
   { to: '/channels', icon: MessageSquare, label: 'Channels' },
 ];

@@ -8,6 +8,8 @@ import {
   Pressable,
   Image,
   Alert,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -24,7 +26,7 @@ import type { UserBadge } from '@training-grounds/shared';
 import type { RootState, AppDispatch } from '../../redux/store';
 import { fetchStats } from '../../redux/slices/attendanceSlice';
 import { fetchStreak, fetchBadges } from '../../redux/slices/gamificationSlice';
-import { updateAvatar } from '../../redux/slices/authSlice';
+import { updateAvatar, updateProfile } from '../../redux/slices/authSlice';
 import { useAuth } from '../../hooks/useAuth';
 import { useGym } from '../../contexts/GymContext';
 import { Card } from '../../components/common/Card';
@@ -55,6 +57,26 @@ export const ProfileScreen: React.FC = () => {
   const { user, logout } = useAuth();
   const { stats } = useSelector((state: RootState) => state.attendance);
   const { streak, badges } = useSelector((state: RootState) => state.gamification);
+
+  const [bioOpen, setBioOpen] = React.useState(false);
+  const [bioDraft, setBioDraft] = React.useState('');
+  const [savingBio, setSavingBio] = React.useState(false);
+
+  const openBio = () => {
+    setBioDraft(user?.bio ?? '');
+    setBioOpen(true);
+  };
+  const saveBio = async () => {
+    setSavingBio(true);
+    try {
+      await dispatch(updateProfile({ bio: bioDraft.trim() })).unwrap();
+      setBioOpen(false);
+    } catch {
+      Alert.alert('Could not save', 'Please try again.');
+    } finally {
+      setSavingBio(false);
+    }
+  };
 
   useEffect(() => {
     dispatch(fetchStats());
@@ -163,6 +185,87 @@ export const ProfileScreen: React.FC = () => {
       borderRadius: borderRadius.full,
       overflow: 'hidden',
       marginTop: spacing.xs,
+    },
+    bioContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: spacing.sm,
+      paddingHorizontal: spacing.lg,
+    },
+    bioText: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      color: theme.textMuted,
+      textAlign: 'center',
+    },
+    bioPlaceholder: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      color: theme.primaryColor,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      justifyContent: 'center',
+      padding: spacing.lg,
+    },
+    modalCard: {
+      backgroundColor: theme.surfaceColor,
+      borderRadius: borderRadius.xl,
+      padding: spacing.lg,
+    },
+    modalTitle: {
+      fontFamily: 'BebasNeue',
+      fontSize: fonts.size.lg,
+      color: theme.textPrimary,
+      marginBottom: spacing.sm,
+    },
+    bioInput: {
+      backgroundColor: theme.secondaryColor,
+      borderRadius: borderRadius.md,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.1)',
+      color: theme.textPrimary,
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      padding: spacing.md,
+      minHeight: 90,
+      textAlignVertical: 'top',
+    },
+    bioCount: {
+      fontFamily: 'Inter',
+      fontSize: 11,
+      color: theme.textMuted,
+      alignSelf: 'flex-end',
+      marginTop: 4,
+    },
+    modalActions: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      gap: spacing.md,
+      marginTop: spacing.md,
+    },
+    modalCancel: {
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.base,
+    },
+    modalCancelText: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      color: theme.textMuted,
+    },
+    modalSave: {
+      backgroundColor: theme.primaryColor,
+      borderRadius: borderRadius.md,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.lg,
+    },
+    modalSaveText: {
+      fontFamily: 'Inter',
+      fontSize: fonts.size.sm,
+      fontWeight: '700' as const,
+      color: theme.secondaryColor,
     },
     // Stats Grid
     statsGrid: {
@@ -324,7 +427,43 @@ export const ProfileScreen: React.FC = () => {
           <Text style={styles.roleTag}>
             {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
           </Text>
+          <Pressable onPress={openBio} style={styles.bioContainer}>
+            {user.bio ? (
+              <Text style={styles.bioText}>{user.bio}</Text>
+            ) : (
+              <Text style={styles.bioPlaceholder}>+ Add a bio</Text>
+            )}
+            <Ionicons name="pencil" size={12} color={theme.textMuted} style={{ marginLeft: 6 }} />
+          </Pressable>
         </View>
+
+        {/* Bio edit modal */}
+        <Modal visible={bioOpen} transparent animationType="fade" onRequestClose={() => setBioOpen(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCard}>
+              <Text style={styles.modalTitle}>Edit Bio</Text>
+              <TextInput
+                style={styles.bioInput}
+                value={bioDraft}
+                onChangeText={setBioDraft}
+                placeholder="Tell the gym a bit about yourself…"
+                placeholderTextColor={theme.textMuted}
+                multiline
+                maxLength={500}
+                autoFocus
+              />
+              <Text style={styles.bioCount}>{bioDraft.length}/500</Text>
+              <View style={styles.modalActions}>
+                <Pressable style={styles.modalCancel} onPress={() => setBioOpen(false)}>
+                  <Text style={styles.modalCancelText}>Cancel</Text>
+                </Pressable>
+                <Pressable style={styles.modalSave} onPress={saveBio} disabled={savingBio}>
+                  <Text style={styles.modalSaveText}>{savingBio ? 'Saving…' : 'Save'}</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         {/* Stats Grid */}
         <View style={styles.statsGrid}>

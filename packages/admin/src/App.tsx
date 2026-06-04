@@ -8,6 +8,7 @@ import { MemberDetailPage } from './pages/MemberDetailPage';
 import { ClassesPage } from './pages/ClassesPage';
 import { BadgesPage } from './pages/BadgesPage';
 import { QuestsPage } from './pages/QuestsPage';
+import { AnnouncementsPage } from './pages/AnnouncementsPage';
 import { JournalFeedPage } from './pages/JournalFeedPage';
 import { ChannelsPage } from './pages/ChannelsPage';
 
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="classes" element={<ClassesPage />} />
         <Route path="badges" element={<BadgesPage />} />
         <Route path="quests" element={<QuestsPage />} />
+        <Route path="announcements" element={<AnnouncementsPage />} />
         <Route path="journal-feed" element={<JournalFeedPage />} />
         <Route path="channels" element={<ChannelsPage />} />
       </Route>

@@ -92,4 +92,12 @@ export const authService = {
     const response = await api.get<BackendApiResponse<User>>('/auth/me');
     return response.data.data;
   },
+
+  async updateProfile(
+    userId: string,
+    updates: { name?: string; bio?: string; avatarUrl?: string },
+  ): Promise<User> {
+    const response = await api.patch<BackendApiResponse<User>>(`/users/${userId}`, updates);
+    return response.data.data;
+  },
 };

@@ -9,7 +9,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsOptional, IsString, IsUrl, MaxLength } from 'class-validator';
 import { UserService } from './user.service';
 import type { UserEntity } from '../../entities/user.entity';
 
@@ -21,6 +21,11 @@ class UpdateUserDto {
   @IsOptional()
   @IsUrl()
   avatarUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  bio?: string;
 }
 
 interface AuthenticatedRequest {
