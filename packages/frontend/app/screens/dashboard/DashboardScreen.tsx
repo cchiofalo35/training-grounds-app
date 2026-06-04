@@ -87,13 +87,11 @@ interface Quest {
 }
 
 const buildWeeklyQuests = (
-  gymSlug: string | null | undefined,
+  isCrossFit: boolean,
   weeklyClasses: number,
   weeklyDisciplines: Set<string>,
   hasJournalThisWeek: boolean,
 ): Quest[] => {
-  const isCrossFit = gymSlug === 'crossfit-karuna' || gymSlug === 'karuna-crossfit';
-
   if (isCrossFit) {
     return [
       {
@@ -297,8 +295,13 @@ export const DashboardScreen: React.FC = () => {
         };
       });
     }
-    return buildWeeklyQuests(activeGym?.slug, weeklyData.count, weeklyData.disciplines, false);
-  }, [apiQuests, weeklyData, activeGym?.slug]);
+    return buildWeeklyQuests(
+      activeGym?.benchmarkWodEnabled ?? false,
+      weeklyData.count,
+      weeklyData.disciplines,
+      false,
+    );
+  }, [apiQuests, weeklyData, activeGym?.benchmarkWodEnabled]);
   const completedQuests = weeklyQuests.filter((q) => q.current >= q.target).length;
 
   // Heatmap

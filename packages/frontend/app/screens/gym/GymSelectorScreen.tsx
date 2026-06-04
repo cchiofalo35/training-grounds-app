@@ -19,7 +19,7 @@ import { spacing, borderRadius } from '@training-grounds/shared';
 /** Static taglines per gym slug — extend as gyms onboard */
 const GYM_TAGLINES: Record<string, string> = {
   'training-grounds': 'Multi-Discipline MMA',
-  'karuna-crossfit': 'Fitter. Stronger. Happier.',
+  'crossfit-karuna': 'Fitter. Stronger. Happier.',
   'iron-lion-mma': 'Forged in Iron',
 };
 
