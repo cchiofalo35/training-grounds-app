@@ -36,6 +36,9 @@ module.exports = () => {
           NSCameraUsageDescription:
             `${tenant.name} uses your camera to scan QR codes for class check-in.`,
           UIBackgroundModes: ['remote-notification'],
+          // HTTPS/TLS only — exempt from export compliance, so TestFlight
+          // stops asking the encryption question on every build.
+          ITSAppUsesNonExemptEncryption: false,
         },
       },
       android: {

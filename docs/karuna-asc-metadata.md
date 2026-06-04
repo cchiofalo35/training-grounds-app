@@ -1,131 +1,123 @@
-# CrossFit Karuna — App Store Connect Metadata
+# CrossFit Karuna — Complete App Store Connect Setup
 
-Paste these values into https://appstoreconnect.apple.com/apps/6762426665 → App Information and App Store tabs. Fields marked **(required)** block submission; the rest can be deferred to the App Store release but TestFlight works without them.
+Everything for <https://appstoreconnect.apple.com/apps/6762426665>, in the order ASC presents it. Copy each value as-is.
+
+**Two things only you can supply** (Apple requires reachable pages): a **Support URL** and a **Privacy Policy URL**. Everything else below is final copy. Suggested quick fix: create two simple pages on `crossfitkaruna.com.au` (or a free Notion/Carrd page) and use those URLs.
+
+**For TestFlight testing you need almost none of this** — only the bits marked 🟢 TESTFLIGHT. The rest is for the public App Store release later.
 
 ---
 
-## App Information
+## 🟢 TESTFLIGHT — what you actually need to test now
+
+App Store Connect → app `6762426665` → **TestFlight** tab:
+
+1. **Build 8 (1.0.0)** finishes processing (~5–15 min after upload).
+2. Click **Manage** beside the build → encryption question → it's now answered automatically in the binary (`ITSAppUsesNonExemptEncryption=false`), so this may not even appear. If it does: **No** / exempt.
+3. **Test Information** (left sidebar, one-time):
+   - **Beta App Description:** `CrossFit Karuna member app — beta. Check in to classes, log WODs and PRs, track streaks, and see the leaderboard.`
+   - **Feedback Email:** `chris@zorro-studios.com`
+   - **Marketing URL / Privacy Policy:** optional for internal testing — leave blank.
+4. **What to Test** (per build):
+   > First beta of CrossFit Karuna. Please test: sign-in, class check-in, logging a WOD/PR, the leaderboard, and community channels. Tell us anything that crashes or looks off.
+5. **Internal Testing** → create a group (e.g. "Coaches") → add testers (must be in Users & Access). Instant, no review. **OR External Testing** → group / public link → testers by email (first build needs a ~1-day Beta App Review).
+
+That's all that's required to test. Everything below is for the public store listing.
+
+---
+
+## App Information (App Store tab)
 
 | Field | Value |
 | --- | --- |
-| **Name** *(required)* | `CrossFit Karuna` |
-| **Subtitle** (30 char max) | `Train. Track. Thrive.` |
+| **Name** | `CrossFit Karuna` |
+| **Subtitle** (30 char) | `Train. Track. Thrive.` |
 | **Primary Language** | English (Australia) |
 | **Bundle ID** | `com.crossfitkaruna.app` *(pre-filled)* |
-| **SKU** | `crossfit-karuna-v1` *(set during app creation)* |
-| **Primary Category** *(required)* | Health & Fitness |
+| **SKU** | `crossfit-karuna-v1` |
+| **Primary Category** | Health & Fitness |
 | **Secondary Category** | Sports |
-| **Content Rights** | Does NOT contain, show, or access third-party content |
+| **Content Rights** | Does not use third-party content |
 
-## Age Rating *(required)*
+## Pricing and Availability
 
-All categories: **None / No**. Produces rating **4+**.
+- **Price:** Free (Tier 0)
+- **Availability:** Australia (or all countries — your call)
 
-## Pricing and Availability *(required)*
+## Age Rating questionnaire → produces **4+**
 
-- **Price**: Free (Tier 0)
-- **Availability**: All countries or Australia-only (your call)
+Answer every question **None / No**:
+- Cartoon/Fantasy Violence, Realistic Violence, Sexual Content, Nudity, Profanity, Alcohol/Tobacco/Drugs, Gambling, Horror, Mature/Suggestive: **None**
+- Unrestricted Web Access: **No**
+- Gambling / Contests: **No**
 
 ---
 
-## App Store Listing (for public release — NOT needed for TestFlight)
+## App Store Listing (public release)
 
-### Promotional Text (170 char max)
-> Join your CrossFit Karuna community. Track WODs, log PRs, keep your streak, and see where you stand on the leaderboard.
+### Promotional Text (170 char)
+> Your box in your pocket. Check in to WODs, log PRs, keep your streak alive, climb the leaderboard, and stay connected with the CrossFit Karuna community.
 
 ### Description
-> CrossFit Karuna is the gym companion app for members of CrossFit Karuna. Check in to classes, track your training, and stay connected with your community — all in one place.
+> CrossFit Karuna is the member app for the CrossFit Karuna community in West Gosford. Check in to classes, track your training, and stay connected — all in one place.
 >
-> **Train**
-> • Quick class check-in at the gym
-> • Log your WOD results, weights, and reps
-> • Track progress across CrossFit, Weightlifting, and conditioning
+> TRAIN
+> • Fast class check-in at the box
+> • Log your WOD results, weights and reps
+> • Track lifts and PRs across CrossFit, Weightlifting and conditioning
 >
-> **Track**
-> • Build streaks for daily training
+> TRACK
+> • Daily training streaks with freezes
 > • Earn XP and badges for attendance and milestones
-> • See your personal records and training history
+> • Personal records and full training history
+> • Benchmark WODs — Fran, Murph, Grace and more
 >
-> **Thrive**
-> • Community channels for each class type
-> • Leaderboards — weekly, monthly, all-time
+> THRIVE
+> • Community channels for WOD results, PRs and competition prep
+> • Leaderboards — weekly, monthly and all-time
 > • Journal your sessions and share with your coach
 > • Refer friends and earn rewards
 >
-> Built for members of CrossFit Karuna. Sign in with your gym account to get started.
+> Built for CrossFit Karuna members. Sign in with your gym account to get started.
 
-### Keywords (100 char max, comma-separated)
-> `crossfit,wod,fitness,gym,workout,training,karuna,strength,weightlifting,community,tracker,habit`
-
-### Support URL *(required)*
-> https://crossfitkaruna.com.au/support
->
-> *(Placeholder — replace with actual support URL. Apple requires a working URL.)*
-
-### Marketing URL (optional)
-> https://crossfitkaruna.com.au
+### Keywords (100 char, comma-separated, no spaces)
+> `crossfit,wod,pr,fitness,gym,workout,training,karuna,weightlifting,strength,leaderboard,box`
 
 ### Copyright
 > © 2026 CrossFit Karuna
 
-### Privacy Policy URL *(required)*
-> https://crossfitkaruna.com.au/privacy
->
-> *(Placeholder — Apple requires a reachable privacy policy before App Store release. Not required for TestFlight Internal Testing.)*
+### Support URL  ⚠️ YOU MUST SUPPLY
+> e.g. `https://crossfitkaruna.com.au/app-support` — must load. Apple rejects dead links.
+
+### Marketing URL (optional)
+> `https://crossfitkaruna.com.au`
+
+### Privacy Policy URL  ⚠️ YOU MUST SUPPLY (public release only)
+> e.g. `https://crossfitkaruna.com.au/privacy` — must load.
 
 ---
 
-## Screenshots *(required for App Store release, NOT for TestFlight Internal)*
+## Screenshots (public release only — NOT needed for TestFlight)
 
-Apple requires **6.7" iPhone** and **6.5" iPhone** screenshot sets (3–10 each). Take them from the Karuna build on an iPhone 16 Pro Max simulator once the build is installed:
+Apple needs a **6.9"/6.7" iPhone** set (3–10 images, 1290×2796 or 1320×2868 portrait PNG). Capture from the running app on an iPhone 16/17 Pro Max simulator:
+1. Dashboard (streak, XP, today's WODs) 2. Check-in 3. Log a PR / LIFT TRACKER 4. Leaderboard 5. A community channel 6. Profile / badges
 
-1. Dashboard / Home (streak, XP, today's WODs)
-2. Class check-in flow
-3. WOD logging / PR entry
-4. Leaderboard
-5. Community channel
-6. Profile / badges
-
-**Sizes Apple accepts for 6.7"**: 1290×2796 or 1284×2778 portrait PNG.
+*(I can generate these from the simulator on request — say the word.)*
 
 ---
 
-## TestFlight-only fields (fill in for internal testing)
+## Export Compliance — now automatic ✅
 
-### What to Test
-> First TestFlight drop for CrossFit Karuna. Please test: sign-in, class check-in, WOD logging, leaderboard, community channels. Report anything that crashes or looks broken.
-
-### Beta App Description
-> CrossFit Karuna member app — internal beta for coaches and staff.
-
-### Feedback Email
-> chris@zorro-studios.com *(or whoever owns beta feedback)*
-
-### Marketing URL
-> (leave blank for beta)
-
-### Privacy Policy URL
-> (leave blank for beta — only required for public App Store release)
+`ITSAppUsesNonExemptEncryption=false` is set in the binary (Info.plist + app.config.js), so **future builds won't ask** the encryption question. The already-uploaded build 8 may ask once; answer **No / exempt**.
 
 ---
 
-## Export Compliance
+## Status checklist
 
-When uploading a build in TestFlight, Apple asks: *"Does your app use encryption?"*
-
-- **Answer**: Yes
-- **Follow-up**: Uses only standard encryption exempt under **ITSAppUsesNonExemptEncryption** = NO (HTTPS / TLS only, no custom crypto).
-
-You can set this permanently by adding `<key>ITSAppUsesNonExemptEncryption</key><false/>` to `Info.plist` so TestFlight stops asking.
-
----
-
-## Submission Checklist
-
-- [ ] App Information filled in (name, bundle ID, category, age rating)
-- [ ] Pricing set to Free
-- [ ] Export compliance answered
-- [ ] Build uploaded via Transporter (.ipa at `build/karuna/CrossFitKaruna.ipa`)
-- [ ] Build finished processing in ASC (~10 min after upload)
-- [ ] Internal testers added (ASC → TestFlight → Internal Testing → pick group)
-- [ ] *(Optional for public launch)* Screenshots, description, keywords, privacy policy URL, support URL
+- [x] Build 8 uploaded to ASC (via Xcode Organizer)
+- [x] Real Karuna branding (icon, splash, colors)
+- [x] Backend live — testers can sign in and use the app
+- [x] Export-compliance auto-answered for future builds
+- [ ] Build finished processing → **Ready to Test**
+- [ ] Test Information + testers added (🟢 above)
+- [ ] *(public launch)* Support URL, Privacy URL, screenshots, then Submit for Review
