@@ -11,11 +11,13 @@ import { CheckInScreen } from '../screens/checkin/CheckInScreen';
 import { LeaderboardScreen } from '../screens/leaderboard/LeaderboardScreen';
 import { CoachCheckinScreen } from '../screens/coach/CoachCheckinScreen';
 import { CommunityScreen } from '../screens/community/CommunityScreen';
+import { WeightliftingScreen } from '../screens/weightlifting/WeightliftingScreen';
 import { ProfileAvatar } from '../components/common/ProfileAvatar';
 
 export type MainTabParamList = {
   Dashboard: undefined;
   CheckIn: undefined;
+  Weightlifting: undefined;
   Community: undefined;
   Leaderboard: undefined;
   CoachCheckin: undefined;
@@ -28,6 +30,7 @@ type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 const TAB_ICONS: Record<string, { active: IoniconsName; inactive: IoniconsName }> = {
   Dashboard: { active: 'home', inactive: 'home-outline' },
   CheckIn: { active: 'qr-code', inactive: 'qr-code-outline' },
+  Weightlifting: { active: 'barbell', inactive: 'barbell-outline' },
   Leaderboard: { active: 'trophy', inactive: 'trophy-outline' },
   CoachCheckin: { active: 'people', inactive: 'people-outline' },
   Community: { active: 'chatbubbles', inactive: 'chatbubbles-outline' },
@@ -42,6 +45,9 @@ const HeaderRight = () => (
 export const MainTabs: React.FC = () => {
   const userRole = useSelector((state: RootState) => state.auth.user?.role);
   const isCoachOrAdmin = userRole === 'coach' || userRole === 'admin';
+  const prTrackingEnabled = useSelector((state: RootState) =>
+    state.gym.gyms.find((g) => g.id === state.gym.activeGymId)?.prTrackingEnabled ?? false,
+  );
   const theme = useTheme();
 
   const styles = useMemo(() => StyleSheet.create({
@@ -104,11 +110,22 @@ export const MainTabs: React.FC = () => {
         component={LeaderboardScreen}
         options={{ tabBarLabel: 'Ranks', headerTitle: 'Leaderboard' }}
       />
-      <Tab.Screen
-        name="CheckIn"
-        component={CheckInScreen}
-        options={{ tabBarLabel: 'Check In', headerTitle: 'Check In' }}
-      />
+      {/* CrossFit gyms (PR tracking on) get the Lift Tracker tab; check-in
+          stays one tap away via the "Quick Check-In" button on Home. Other
+          gyms keep the dedicated Check In tab. */}
+      {prTrackingEnabled ? (
+        <Tab.Screen
+          name="Weightlifting"
+          component={WeightliftingScreen}
+          options={{ tabBarLabel: 'Lifts', headerShown: false }}
+        />
+      ) : (
+        <Tab.Screen
+          name="CheckIn"
+          component={CheckInScreen}
+          options={{ tabBarLabel: 'Check In', headerTitle: 'Check In' }}
+        />
+      )}
       <Tab.Screen
         name="Community"
         component={CommunityScreen}

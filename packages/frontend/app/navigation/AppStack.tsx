@@ -7,7 +7,6 @@ import { JournalScreen } from '../screens/journal/JournalScreen';
 import { RewardsScreen } from '../screens/rewards/RewardsScreen';
 import { GymSelectorScreen } from '../screens/gym/GymSelectorScreen';
 import { GymBrandingScreen } from '../screens/admin/GymBrandingScreen';
-import { WeightliftingScreen } from '../screens/weightlifting/WeightliftingScreen';
 import { LiftDetailScreen } from '../screens/weightlifting/LiftDetailScreen';
 import { LogPrScreen } from '../screens/weightlifting/LogPrScreen';
 
@@ -85,16 +84,6 @@ export const AppStack: React.FC = () => {
           ...headerOptions,
           animation: 'slide_from_bottom',
           presentation: 'modal',
-        }}
-      />
-      <Stack.Screen
-        name="Weightlifting"
-        component={WeightliftingScreen}
-        options={{
-          headerShown: true,
-          headerTitle: 'Lift Tracker',
-          ...headerOptions,
-          animation: 'slide_from_right',
         }}
       />
       <Stack.Screen
