@@ -14,13 +14,15 @@ green branding, "CROSSFIT KARUNA" wordmark, "Fitter. Stronger. Happier.")
 
 ## Login
 
-- **Email:** `coach@traininggrounds.app`
-- **Password:** `Coach1234!`
+- **Email:** `coach@crossfitkaruna.app`
+- **Password:** `KarunaCoach2026!`
 
-This account has the **coach** role (required for the dashboard). The portal is
-locked to the **Karuna** gym, so even though the email is a generic coach login,
-everything you see and create is Karuna's. If you'd prefer a branded
-`coach@crossfitkaruna.app` login, say the word — it's a 2-minute add.
+This is a dedicated **admin** account for CrossFit Karuna (created fresh, a member
+of the Karuna gym). Change the password any time. The portal is locked to the
+Karuna gym, so everything you see and create is Karuna's.
+
+*(There's also a generic `coach@traininggrounds.app` / `Coach1234!` coach login
+that works too, but the one above is yours.)*
 
 ## What you can do
 
