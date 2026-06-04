@@ -63,6 +63,51 @@ const CATEGORY_LABELS: Record<string, string> = {
   media: 'Media',
 };
 
+/** Per-channel icon, keyed by channel name (with a keyword fallback below). */
+const CHANNEL_ICONS: Record<string, string> = {
+  announcements: 'megaphone',
+  general: 'chatbubbles',
+  'off-topic': 'happy',
+  introductions: 'hand-right',
+  intros: 'hand-right',
+  'open-gym': 'time',
+  nutrition: 'nutrition',
+  'mobility-recovery': 'body',
+  crossfit: 'barbell',
+  weightlifting: 'fitness',
+  hyrox: 'walk',
+  'wod-results': 'checkmark-done-circle',
+  'pr-bell': 'ribbon',
+  'competition-prep': 'trophy',
+  highlights: 'star',
+  'rolling-footage': 'videocam',
+  // MMA (Training Grounds) disciplines
+  bjj: 'body',
+  'bjj-gi': 'body',
+  'bjj-nogi': 'body',
+  'muay-thai': 'hand-left',
+  boxing: 'hand-left',
+  wrestling: 'body',
+  mma: 'flame',
+};
+
+/** Resolve an Ionicons name for a channel by exact name, then by keyword. */
+function getChannelIcon(name: string): string {
+  const key = name.toLowerCase().trim();
+  if (CHANNEL_ICONS[key]) return CHANNEL_ICONS[key];
+  if (key.includes('announce')) return 'megaphone';
+  if (key.includes('comp')) return 'trophy';
+  if (key.includes('pr') || key.includes('bell')) return 'ribbon';
+  if (key.includes('wod') || key.includes('metcon')) return 'barbell';
+  if (key.includes('lift')) return 'fitness';
+  if (key.includes('nutri')) return 'nutrition';
+  if (key.includes('mobility') || key.includes('recovery')) return 'body';
+  if (key.includes('video') || key.includes('footage') || key.includes('highlight')) return 'videocam';
+  if (key.includes('intro')) return 'hand-right';
+  if (key.includes('off')) return 'happy';
+  return 'chatbubble-ellipses';
+}
+
 const BELT_COLORS: Record<string, string> = {
   white: '#FFFFFF',
   blue: '#1E40AF',
@@ -583,9 +628,15 @@ export const CommunityScreen: React.FC = () => {
                     onPress={() => openChannel(channel)}
                   >
                     <View style={styles.channelIcon}>
-                      <Text style={styles.channelEmoji}>
-                        {channel.iconEmoji ?? '#'}
-                      </Text>
+                      {channel.iconEmoji ? (
+                        <Text style={styles.channelEmoji}>{channel.iconEmoji}</Text>
+                      ) : (
+                        <Ionicons
+                          name={getChannelIcon(channel.name) as any}
+                          size={20}
+                          color={theme.primaryColor}
+                        />
+                      )}
                     </View>
                     <View style={styles.channelInfo}>
                       <View style={styles.channelNameRow}>
@@ -630,9 +681,15 @@ export const CommunityScreen: React.FC = () => {
           <Ionicons name="chevron-back" size={24} color={theme.textPrimary} />
         </Pressable>
         <View style={styles.chatHeaderInfo}>
-          <Text style={styles.chatHeaderEmoji}>
-            {selectedChannel?.iconEmoji ?? '#'}
-          </Text>
+          {selectedChannel?.iconEmoji ? (
+            <Text style={styles.chatHeaderEmoji}>{selectedChannel.iconEmoji}</Text>
+          ) : (
+            <Ionicons
+              name={getChannelIcon(selectedChannel?.name ?? '') as any}
+              size={20}
+              color={theme.primaryColor}
+            />
+          )}
           <Text style={styles.chatHeaderTitle} numberOfLines={1}>
             {selectedChannel?.name}
           </Text>
