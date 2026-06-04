@@ -21,6 +21,7 @@ import {
 } from '../../redux/slices/gamificationSlice';
 import { Card } from '../../components/common/Card';
 import { BeltDisplay } from '../../components/common/BeltDisplay';
+import { useGymCopy } from '../../utils/gymCopy';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const LEAGUE_TABS: { key: LeagueType; label: string; color: string }[] = [
@@ -47,6 +48,7 @@ const RANK_COLORS: Record<number, string> = {
 export const LeaderboardScreen: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const theme = useTheme();
+  const gymCopy = useGymCopy();
   const { leaderboard, selectedLeague, selectedPeriod, isLoadingLeaderboard } = useSelector(
     (state: RootState) => state.gamification,
   );
@@ -292,7 +294,9 @@ export const LeaderboardScreen: React.FC = () => {
               {item.userName}
               {isCurrentUser ? ' (You)' : ''}
             </Text>
-            <BeltDisplay belt={item.beltRank} stripes={0} size="small" />
+            {gymCopy.showBeltPicker && (
+              <BeltDisplay belt={item.beltRank} stripes={0} size="small" />
+            )}
           </View>
 
           {/* XP & Change */}

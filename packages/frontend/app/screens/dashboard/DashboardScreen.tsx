@@ -757,8 +757,8 @@ export const DashboardScreen: React.FC = () => {
         >
           <Ionicons name="qr-code" size={28} color={theme.secondaryColor} />
           <View style={styles.checkInTextContainer}>
-            <Text style={styles.checkInTitle}>QUICK CHECK-IN</Text>
-            <Text style={styles.checkInSubtext}>Scan QR or select class</Text>
+            <Text style={styles.checkInTitle}>REWARDS CHECK-IN</Text>
+            <Text style={styles.checkInSubtext}>Scan QR to earn your rewards</Text>
           </View>
           <Ionicons name="arrow-forward" size={24} color={theme.secondaryColor} />
         </Pressable>

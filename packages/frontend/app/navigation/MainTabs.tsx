@@ -123,7 +123,7 @@ export const MainTabs: React.FC = () => {
         <Tab.Screen
           name="CheckIn"
           component={CheckInScreen}
-          options={{ tabBarLabel: 'Check In', headerTitle: 'Check In' }}
+          options={{ tabBarLabel: 'Rewards', headerTitle: 'Rewards Check-In' }}
         />
       )}
       <Tab.Screen
