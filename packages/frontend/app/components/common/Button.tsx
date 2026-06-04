@@ -52,7 +52,7 @@ export const Button: React.FC<ButtonProps> = ({
       style={({ pressed }) => [
         styles.base,
         {
-          backgroundColor: themeStyle.backgroundColor,
+          backgroundColor: isPrimary ? theme.primaryColor : themeStyle.backgroundColor,
           paddingVertical: themeStyle.paddingVertical,
           paddingHorizontal: themeStyle.paddingHorizontal,
           borderRadius: themeStyle.borderRadius,
@@ -73,7 +73,7 @@ export const Button: React.FC<ButtonProps> = ({
           style={[
             styles.text,
             {
-              color: themeStyle.color,
+              color: isPrimary ? theme.secondaryColor : themeStyle.color,
               fontWeight: themeStyle.fontWeight,
               fontSize: themeStyle.fontSize,
               letterSpacing: themeStyle.letterSpacing,

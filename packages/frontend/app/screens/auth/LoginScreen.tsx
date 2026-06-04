@@ -19,8 +19,11 @@ import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../../components/common/Button';
 import type { AuthStackParamList } from '../../navigation/AuthStack';
 import { useTheme } from '../../contexts/ThemeContext';
+import { getTenantBrand } from '../../utils/tenantBranding';
 
 type LoginNavProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
+
+const brand = getTenantBrand();
 
 export const LoginScreen: React.FC = () => {
   const navigation = useNavigation<LoginNavProp>();
@@ -186,9 +189,9 @@ export const LoginScreen: React.FC = () => {
         >
           {/* Logo Area */}
           <View style={styles.logoArea}>
-            <Text style={styles.logoText}>TRAINING</Text>
-            <Text style={styles.logoTextAccent}>GROUNDS</Text>
-            <Text style={styles.tagline}>Track. Train. Dominate.</Text>
+            <Text style={styles.logoText}>{brand.line1}</Text>
+            <Text style={[styles.logoTextAccent, { color: brand.primaryColor }]}>{brand.line2}</Text>
+            <Text style={styles.tagline}>{brand.tagline}</Text>
           </View>
 
           {/* Error Display */}

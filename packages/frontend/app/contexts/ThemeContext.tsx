@@ -3,14 +3,20 @@ import { useSelector } from 'react-redux';
 import type { GymTheme } from '@training-grounds/shared';
 import type { RootState } from '../redux/store';
 import api from '../services/api';
+import { getTenantBrand } from '../utils/tenantBranding';
 
 /**
- * DEFAULT_THEME is the only place static brand colors appear.
+ * DEFAULT_THEME is the pre-auth fallback used before a gym is loaded.
+ * It is tenant-aware (resolved from the build's bundle ID) so a locked
+ * tenant build — e.g. CrossFit Karuna — shows its own brand color on the
+ * login/register screens, not the Training Grounds default.
  * Every component must use useTheme() instead of importing colors directly.
  */
+const tenantBrand = getTenantBrand();
+
 export const DEFAULT_THEME: GymTheme = {
-  primaryColor: '#C9A87C',   // warmAccent / gold
-  secondaryColor: '#1E1E1E', // charcoal
+  primaryColor: tenantBrand.primaryColor,
+  secondaryColor: tenantBrand.backgroundColor,
   surfaceColor: '#2A2A2A',   // darkGrey
   textPrimary: '#FAFAF8',    // offWhite
   textMuted: '#B0B5B8',      // steel
