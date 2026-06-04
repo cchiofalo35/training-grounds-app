@@ -48,7 +48,16 @@ and the reviewer account are all already in place from the earlier builds.
 
 - Backend is live on Railway: `https://backend-production-3469.up.railway.app/api/v1`
   (the app's `.env` points here for production builds).
-- Demo / reviewer login works end-to-end against this backend.
+- **Production reviewer account (give this to Apple / testers):**
+  `appreview@crossfitkaruna.app` / `CFKaruna2026!`
+- I seeded this account **on production** (via the public API, backdated `loggedAt`) so the two
+  fixes are visible the moment you log in — no waiting to accumulate data:
+  - **~2,300 XP** on the dashboard (was 0) → the XP bar shows real progress.
+  - **5 lifts with multi-month PR history** → Lift Tracker ▸ tap **Back Squat** shows a 6-point
+    progression line (120→142.5 kg, Feb→May). Deadlift/Snatch/Clean&Jerk/Strict Press too.
+  - Logging a new PR bumps the XP immediately (the refresh fix).
+  - (Streak is still 0 — that's a genuine fresh-account value; check in to start one.)
+- Production Karuna gym id: `b2673cbe-8c0f-4a55-8945-4935a6b45d5b` (prTracking + benchmark on).
 
 ## Known low-priority follow-ups (not blockers)
 
