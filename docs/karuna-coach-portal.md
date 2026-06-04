@@ -7,10 +7,13 @@ you create shows up in members' apps automatically.
 
 ## Where it lives
 
-**https://cchiofalo35.github.io/training-grounds-app/**
+**https://cchiofalo35.github.io/crossfit-karuna/**
 
-(The URL path is the GitHub repo name; the app itself is fully CrossFit Karuna —
-green branding, "CROSSFIT KARUNA" wordmark, "Fitter. Stronger. Happier.")
+Standalone — its own GitHub repo (`cchiofalo35/crossfit-karuna`), its own URL,
+nothing shared with Training Grounds. Fully CrossFit Karuna branded (green,
+"CROSSFIT KARUNA", "Fitter. Stronger. Happier."). For a fully Karuna-owned
+address like `admin.crossfitkaruna.com.au`, add a CNAME DNS record pointing at
+`cchiofalo35.github.io` and a `CNAME` file in the repo — then it's that domain.
 
 ## Login
 
@@ -42,15 +45,28 @@ that works too, but the one above is yours.)*
 
 ## How it's wired (for future me)
 
-- One codebase, tenant-differentiated — same approach as the mobile app.
-  `packages/admin/src/brand.ts` holds the brand (name, green accent, tagline,
-  **gym id**), chosen by `VITE_BRAND` (defaults to `karuna`). A Training Grounds
-  build is just `VITE_BRAND=training-grounds`.
-- Every API request sends `X-Gym-Id: <Karuna gym>` (the backend's
-  TenantMiddleware requires it). Karuna gym id: `b2673cbe-8c0f-4a55-8945-4935a6b45d5b`.
-- Backend: `https://backend-production-3469.up.railway.app/api/v1` (live Railway).
-- Deploy: push to `main` touching `packages/admin/**` → GitHub Action
-  `deploy-admin.yml` builds and publishes to GitHub Pages.
+- **Source** lives in the `training-grounds-app` monorepo at `packages/admin`
+  (one codebase, tenant-differentiated). `src/brand.ts` holds the brand (name,
+  green accent, tagline, **gym id**), chosen by `VITE_BRAND` (`karuna` /
+  `training-grounds`) and `VITE_BASE` (the URL base path).
+- **Deployed artifact** lives in its OWN repo `cchiofalo35/crossfit-karuna`
+  (Pages, branch `main`). The two companies share no repo/URL.
+- Every API request sends `X-Gym-Id: <Karuna gym>` (backend TenantMiddleware
+  requires it). Karuna gym id: `b2673cbe-8c0f-4a55-8945-4935a6b45d5b`.
+- Backend: `https://backend-production-3469.up.railway.app/api/v1` (live Railway,
+  multi-tenant — Karuna's data is isolated by gym id).
+- **Single-file build:** GitHub Pages on this account doesn't serve newly-deployed
+  `/assets/*` (only the root `index.html`), so `scripts/inline.mjs` folds the JS+CSS
+  into one self-contained `index.html` (escaping `</script>`). That's the whole app.
+- **To redeploy Karuna:**
+  ```sh
+  cd packages/admin
+  VITE_BRAND=karuna VITE_BASE=/crossfit-karuna/ npm run build && node scripts/inline.mjs
+  cp dist/index.html /tmp/k/index.html && cp /tmp/k/index.html /tmp/k/404.html  # + .nojekyll
+  # commit those to the crossfit-karuna repo's main branch
+  ```
+- Training Grounds ships separately from this monorepo's `deploy-admin.yml`
+  (TG-only) to `cchiofalo35.github.io/training-grounds-app/`.
 
 ## Note on "goals"
 
