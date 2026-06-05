@@ -9,6 +9,7 @@ import { GymSelectorScreen } from '../screens/gym/GymSelectorScreen';
 import { GymBrandingScreen } from '../screens/admin/GymBrandingScreen';
 import { LiftDetailScreen } from '../screens/weightlifting/LiftDetailScreen';
 import { LogPrScreen } from '../screens/weightlifting/LogPrScreen';
+import { CheckInScreen } from '../screens/checkin/CheckInScreen';
 
 export type AppStackParamList = {
   HomeTabs: undefined;
@@ -20,6 +21,9 @@ export type AppStackParamList = {
   Weightlifting: undefined;
   LiftDetail: { movementName: string };
   LogPr: { movementName?: string };
+  // Reachable from the home "Rewards Check-in" button on all tenants (gyms with
+  // the Lifts tab don't have a Check-In tab, so it must live here too).
+  CheckIn: { scan?: boolean } | undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -105,6 +109,16 @@ export const AppStack: React.FC = () => {
           ...headerOptions,
           animation: 'slide_from_bottom',
           presentation: 'modal',
+        }}
+      />
+      <Stack.Screen
+        name="CheckIn"
+        component={CheckInScreen}
+        options={{
+          headerShown: true,
+          headerTitle: 'Rewards Check-In',
+          ...headerOptions,
+          animation: 'slide_from_bottom',
         }}
       />
     </Stack.Navigator>

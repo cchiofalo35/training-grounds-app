@@ -812,7 +812,7 @@ export const DashboardScreen: React.FC = () => {
             styles.checkInButton,
             { opacity: pressed ? 0.85 : 1 },
           ]}
-          onPress={() => navigation.navigate('CheckIn')}
+          onPress={() => navigation.navigate('CheckIn', { scan: true })}
         >
           <Ionicons name="qr-code" size={28} color={theme.secondaryColor} />
           <View style={styles.checkInTextContainer}>

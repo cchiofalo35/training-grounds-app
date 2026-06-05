@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing, borderRadius } from '@training-grounds/shared';
@@ -78,8 +79,9 @@ export const CheckInScreen: React.FC = () => {
   const { isCheckingIn } = useSelector((state: RootState) => state.attendance);
   const theme = useTheme();
 
+  const route = useRoute<RouteProp<{ CheckIn: { scan?: boolean } | undefined }, 'CheckIn'>>();
   const [permission, requestPermission] = useCameraPermissions();
-  const [mode, setMode] = useState<CheckInMode>('classes');
+  const [mode, setMode] = useState<CheckInMode>(route.params?.scan ? 'scan' : 'classes');
   const [scannedData, setScannedData] = useState<string | null>(null);
   const [selectedClass, setSelectedClass] = useState<TodayClass | null>(null);
   const [todayClasses, setTodayClasses] = useState<TodayClass[]>([]);

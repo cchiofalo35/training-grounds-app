@@ -16,7 +16,7 @@ import { ProfileAvatar } from '../components/common/ProfileAvatar';
 
 export type MainTabParamList = {
   Dashboard: undefined;
-  CheckIn: undefined;
+  CheckIn: { scan?: boolean } | undefined;
   Weightlifting: undefined;
   Community: undefined;
   Leaderboard: undefined;
