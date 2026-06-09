@@ -30,6 +30,7 @@ class UpdateUserDto {
 
 interface AuthenticatedRequest {
   user: UserEntity;
+  gymId: string;
 }
 
 @Controller('users')
@@ -58,8 +59,11 @@ export class UserController {
   }
 
   @Get(':id/stats')
-  async getUserStats(@Param('id') id: string) {
-    const stats = await this.userService.getStats(id);
+  async getUserStats(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const stats = await this.userService.getStats(req.gymId, id);
     return { success: true, data: stats };
   }
 }

@@ -59,15 +59,15 @@ export class UserService {
     return this.userRepo.save(user);
   }
 
-  async getStats(userId: string): Promise<UserStats> {
+  async getStats(gymId: string, userId: string): Promise<UserStats> {
     const user = await this.findById(userId);
 
     const totalClasses = await this.attendanceRepo.count({
-      where: { userId },
+      where: { userId, gymId },
     });
 
     const badgeCount = await this.userBadgeRepo.count({
-      where: { userId },
+      where: { userId, gymId },
     });
 
     const disciplineBreakdown = await this.attendanceRepo
@@ -75,6 +75,7 @@ export class UserService {
       .select('a.discipline', 'discipline')
       .addSelect('COUNT(*)', 'count')
       .where('a.userId = :userId', { userId })
+      .andWhere('a.gymId = :gymId', { gymId })
       .groupBy('a.discipline')
       .getRawMany<{ discipline: string; count: string }>();
 

@@ -194,9 +194,17 @@ export class AttendanceService {
     memberEmail: string,
     dto: CoachCheckinDto,
   ): Promise<AttendanceRecordEntity> {
-    const member = await this.userRepo.findOne({ where: { email: memberEmail } });
+    // Resolve the member WITHIN this gym only — a coach must not be able to
+    // check in a user who belongs to a different gym.
+    const member = await this.userRepo
+      .createQueryBuilder('u')
+      .innerJoin('gym_memberships', 'gm', 'gm.userId = u.id')
+      .where('gm.gymId = :gymId', { gymId })
+      .andWhere('gm.isActive = true')
+      .andWhere('u.email = :email', { email: memberEmail })
+      .getOne();
     if (!member) {
-      throw new NotFoundException('Member not found with that email');
+      throw new NotFoundException('Member not found with that email in this gym');
     }
 
     const xpEarned = this.calculateCheckinXp(dto.intensityRating, member.currentStreak);
