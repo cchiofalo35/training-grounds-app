@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Body,
+  Headers,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -36,8 +37,14 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  async login(@Body() dto: LoginDto) {
-    const result = await this.authService.login(dto.firebaseToken);
+  async login(
+    @Body() dto: LoginDto,
+    @Headers('x-gym-id') gymId?: string,
+  ) {
+    // Pass the gym the app is scoped to so login can self-heal a missing
+    // membership (e.g. existing accounts created before memberships were
+    // enforced, or a user opening a second tenant app for the first time).
+    const result = await this.authService.login(dto.firebaseToken, gymId);
     return {
       success: true,
       data: {
@@ -48,10 +55,14 @@ export class AuthController {
   }
 
   @Post('register')
-  async register(@Body() dto: RegisterDto) {
+  async register(
+    @Body() dto: RegisterDto,
+    @Headers('x-gym-id') gymId?: string,
+  ) {
     const result = await this.authService.register({
       firebaseToken: dto.firebaseToken,
       name: dto.name,
+      gymId,
     });
     return {
       success: true,
