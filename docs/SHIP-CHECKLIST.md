@@ -24,7 +24,20 @@ _Last updated by the review pass._
 
 ---
 
-## 🔑 Blocked on your credentials (3 things)
+## 🔑 Blocked on your credentials (4 things)
+
+### 0. Xcode Apple ID session expired → blocks the Training Grounds .ipa export
+Open **Xcode → Settings → Accounts** and sign back in as `chris@zorro-studios.com`.
+(Error seen: `exportArchive No Accounts` / `No signing certificate "iOS Distribution"`.
+Karuna's .ipa exported yesterday while the session was live, so it's unaffected.)
+Then the export is one command:
+```bash
+xcodebuild -exportArchive \
+  -archivePath build/tg/TrainingGrounds.xcarchive \
+  -exportPath build/tg/export \
+  -exportOptionsPlist build/tg/ExportOptions.plist \
+  -allowProvisioningUpdates
+```
 
 ### 1. App-specific password → uploads both apps to TestFlight
 Create one: <https://appleid.apple.com/account/manage> → Sign-In and Security → App-Specific Passwords → `+`

@@ -60,6 +60,8 @@ module.exports = () => {
         tenantKey: tenant.key,
         tenantSlug: tenant.slug,
         primaryColor: tenant.primaryColor,
+        googleIosClientId: tenant.googleIosClientId || '',
+        googleWebClientId: tenant.googleWebClientId || '',
       },
     },
   };

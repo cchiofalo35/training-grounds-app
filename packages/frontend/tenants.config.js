@@ -42,6 +42,12 @@ const TENANTS = {
     splashImage: './app/assets/tenants/training-grounds/splash.png',
     primaryColor: '#C9A87C',
     ascAppId: '6761029689',
+    // Google Sign-In OAuth client IDs (Firebase Console → Auth → Google).
+    // iosClientId = the iOS OAuth client for this bundle ID.
+    // webClientId = the "Web client (auto created by Google Service)" id —
+    //               used as the audience for the Firebase token exchange.
+    googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID_TG || '',
+    googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID_TG || '',
   },
 
   'crossfit-karuna': {
@@ -57,6 +63,8 @@ const TENANTS = {
     primaryColor: '#8BC53F',
     // Fill this in after creating the app in App Store Connect (see README)
     ascAppId: "6762426665",
+    googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID_KARUNA || '',
+    googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID_KARUNA || '',
   },
 };
 
