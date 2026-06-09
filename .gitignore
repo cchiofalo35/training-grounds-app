@@ -49,3 +49,8 @@ yarn-error.log*
 # Temporary
 tmp/
 temp/
+
+# local junk
+firebase-debug.log
+*.env.bak
+preview/
