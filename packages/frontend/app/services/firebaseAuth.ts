@@ -116,10 +116,16 @@ export const firebaseAuth = {
    * (Apple only provides name on first sign-in).
    */
   async signInWithApple(): Promise<AppleSignInResult> {
-    // Generate nonce for security
-    const nonce = await Crypto.digestStringAsync(
+    // Nonce flow (per Firebase + Apple spec):
+    //   - Apple must receive the SHA256 *hash* of a random raw nonce.
+    //   - Firebase must receive the *raw* nonce; it re-hashes it and compares
+    //     to the hash embedded in Apple's identity token.
+    // Sending the hash to both (the previous bug) makes Firebase hash the hash,
+    // so the comparison never matches and sign-in fails after the IdP exchange.
+    const rawNonce = Crypto.randomUUID() + Crypto.randomUUID();
+    const hashedNonce = await Crypto.digestStringAsync(
       Crypto.CryptoDigestAlgorithm.SHA256,
-      Math.random().toString(36) + Date.now().toString(),
+      rawNonce,
     );
 
     const credential = await AppleAuthentication.signInAsync({
@@ -127,7 +133,7 @@ export const firebaseAuth = {
         AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
         AppleAuthentication.AppleAuthenticationScope.EMAIL,
       ],
-      nonce,
+      nonce: hashedNonce,
     });
 
     if (!credential.identityToken) {
@@ -141,8 +147,9 @@ export const firebaseAuth = {
           .join(' ') || null
       : null;
 
-    // Exchange Apple identity token for Firebase token
-    const postBody = `id_token=${credential.identityToken}&providerId=apple.com&nonce=${nonce}`;
+    // Exchange Apple identity token for Firebase token. Firebase gets the RAW
+    // nonce (it hashes it itself to verify against the token).
+    const postBody = `id_token=${credential.identityToken}&providerId=apple.com&nonce=${rawNonce}`;
     const result = await firebaseRequest('accounts:signInWithIdp', {
       postBody,
       requestUri: 'https://training-grounds-app.firebaseapp.com/__/auth/handler',
